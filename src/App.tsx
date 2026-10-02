@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes, type ReactNode } from "react-router-dom";
+import type { ReactNode } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./components/auth/RequireAuth";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { Billing } from "./pages/Billing";
