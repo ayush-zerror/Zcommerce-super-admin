@@ -1,0 +1,353 @@
+import {
+  addToast,
+  Button,
+  Card,
+  CardBody,
+  Chip,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Select,
+  SelectItem,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from "@heroui/react";
+import { useMemo, useState } from "react";
+import type { Coupon, PlanName } from "../../types";
+import { formatDate } from "../../lib/utils";
+import { dataTableFillClassNames, tablePanelFillClassName } from "../common/dataTableStyles";
+import {
+  FilterCheckboxGroup,
+  TableRowCheckbox,
+  TableSelectAll,
+  TableToolbar,
+} from "../common/TableToolbar";
+import { NoDataPlaceholder } from "../common/NoDataPlaceholder";
+
+export interface CouponsTabProps {
+  coupons: Coupon[];
+  onCreate: (coupon: Coupon) => void;
+  createOpen: boolean;
+  onCreateOpenChange: (open: boolean) => void;
+}
+
+const columns = [
+  { key: "code", label: "Code" },
+  { key: "discount", label: "Discount" },
+  { key: "appliesTo", label: "Applies To" },
+  { key: "redemptions", label: "Redemptions" },
+  { key: "expiresAt", label: "Expires" },
+  { key: "active", label: "Status" },
+] as const;
+
+const planOptions: Array<PlanName | "All"> = [
+  "All",
+  "Free",
+  "Starter",
+  "Pro",
+  "Enterprise",
+];
+
+export function CouponsTab({
+  coupons,
+  onCreate,
+  createOpen,
+  onCreateOpenChange,
+}: CouponsTabProps) {
+  const [code, setCode] = useState("");
+  const [discountType, setDiscountType] = useState<"percent" | "fixed">("percent");
+  const [discountValue, setDiscountValue] = useState("10");
+  const [appliesTo, setAppliesTo] = useState<PlanName | "All">("All");
+  const [maxRedemptions, setMaxRedemptions] = useState("100");
+  const [expiresAt, setExpiresAt] = useState("2026-12-31");
+  const [active, setActive] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(
+    columns.map((column) => column.key),
+  );
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return coupons.filter((coupon) => {
+      const matchesSearch =
+        !query ||
+        coupon.code.toLowerCase().includes(query) ||
+        String(coupon.appliesTo).toLowerCase().includes(query);
+      const statusKey = coupon.active ? "active" : "inactive";
+      const matchesStatus =
+        statusFilter.length === 0 || statusFilter.includes(statusKey);
+      return matchesSearch && matchesStatus;
+    });
+  }, [coupons, search, statusFilter]);
+
+  const dataColumns = columns.filter((column) =>
+    visibleColumns.includes(column.key),
+  );
+  const headerColumns = useMemo(
+    () => [{ key: "select", label: "" }, ...dataColumns],
+    [dataColumns],
+  );
+
+  const allSelected =
+    filtered.length > 0 && filtered.every((item) => selected.has(item.id));
+  const someSelected = filtered.some((item) => selected.has(item.id));
+
+  const renderCell = (coupon: Coupon, key: string) => {
+    if (key === "select") {
+      return (
+        <TableRowCheckbox
+          ariaLabel={`Select ${coupon.code}`}
+          isSelected={selected.has(coupon.id)}
+          onValueChange={(checked) => {
+            setSelected((prev) => {
+              const next = new Set(prev);
+              if (checked) next.add(coupon.id);
+              else next.delete(coupon.id);
+              return next;
+            });
+          }}
+        />
+      );
+    }
+
+    switch (key) {
+      case "code":
+        return <span className="font-mono font-semibold">{coupon.code}</span>;
+      case "discount":
+        return coupon.discountType === "percent"
+          ? `${coupon.discountValue}%`
+          : `$${coupon.discountValue}`;
+      case "appliesTo":
+        return coupon.appliesTo;
+      case "redemptions":
+        return `${coupon.redemptions}/${coupon.maxRedemptions}`;
+      case "expiresAt":
+        return formatDate(coupon.expiresAt);
+      case "active":
+        return (
+          <Chip
+            size="sm"
+            variant="flat"
+            color={coupon.active ? "success" : "default"}
+            className="h-7 rounded-full px-3"
+          >
+            {coupon.active ? "Active" : "Inactive"}
+          </Chip>
+        );
+      default:
+        return "—";
+    }
+  };
+
+  const resetForm = () => {
+    setCode("");
+    setDiscountType("percent");
+    setDiscountValue("10");
+    setAppliesTo("All");
+    setMaxRedemptions("100");
+    setExpiresAt("2026-12-31");
+    setActive(true);
+  };
+
+  const handleCreate = () => {
+    const trimmed = code.trim().toUpperCase();
+    const value = Number(discountValue);
+    const max = Number(maxRedemptions);
+    if (!trimmed) {
+      addToast({ title: "Code required", color: "danger" });
+      return;
+    }
+    if (Number.isNaN(value) || value <= 0) {
+      addToast({ title: "Invalid discount value", color: "danger" });
+      return;
+    }
+    if (Number.isNaN(max) || max <= 0) {
+      addToast({ title: "Invalid max redemptions", color: "danger" });
+      return;
+    }
+
+    onCreate({
+      id: `cpn-${Date.now()}`,
+      code: trimmed,
+      discountType,
+      discountValue: value,
+      appliesTo,
+      redemptions: 0,
+      maxRedemptions: max,
+      expiresAt,
+      active,
+    });
+    onCreateOpenChange(false);
+    resetForm();
+    addToast({
+      title: "Coupon created",
+      description: `${trimmed} is ready to use (local demo).`,
+      color: "success",
+    });
+  };
+
+  return (
+    <>
+      <Card shadow="none" className={tablePanelFillClassName}>
+        <CardBody className="flex min-h-0 flex-1 flex-col gap-0 p-0">
+          <TableToolbar
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search for coupon details..."
+            columns={[...columns].map((column) => ({
+              key: column.key,
+              label: column.label,
+            }))}
+            visibleColumns={visibleColumns}
+            onVisibleColumnsChange={setVisibleColumns}
+            filterContent={
+              <FilterCheckboxGroup
+                label="Status"
+                options={[
+                  { key: "active", label: "Active" },
+                  { key: "inactive", label: "Inactive" },
+                ]}
+                value={statusFilter}
+                onChange={setStatusFilter}
+              />
+            }
+          />
+          <Table
+            aria-label="Coupons table"
+            classNames={dataTableFillClassNames}
+          >
+            <TableHeader columns={headerColumns}>
+              {(column) =>
+                column.key === "select" ? (
+                  <TableColumn key="select" width={48}>
+                    <TableSelectAll
+                      isSelected={allSelected}
+                      isIndeterminate={someSelected && !allSelected}
+                      onValueChange={(checked) => {
+                        setSelected(
+                          checked
+                            ? new Set(filtered.map((item) => item.id))
+                            : new Set(),
+                        );
+                      }}
+                    />
+                  </TableColumn>
+                ) : (
+                  <TableColumn key={column.key}>{column.label}</TableColumn>
+                )
+              }
+            </TableHeader>
+            <TableBody
+              items={filtered}
+              emptyContent={
+                <NoDataPlaceholder
+                  title="No coupons yet"
+                  description="Create a discount code to get started."
+                  buttonLabel="Create coupon"
+                  onButtonClick={() => onCreateOpenChange(true)}
+                />
+              }
+            >
+              {(coupon) => (
+                <TableRow key={coupon.id}>
+                  {(columnKey) => (
+                    <TableCell>{renderCell(coupon, String(columnKey))}</TableCell>
+                  )}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardBody>
+      </Card>
+
+      <Modal
+        isOpen={createOpen}
+        onClose={() => {
+          onCreateOpenChange(false);
+          resetForm();
+        }}
+        placement="center"
+        size="lg"
+      >
+        <ModalContent>
+          {(close) => (
+            <>
+              <ModalHeader>Create coupon</ModalHeader>
+              <ModalBody className="gap-3">
+                <Input label="Code" value={code} onValueChange={setCode} placeholder="SAVE20" />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Select
+                    label="Discount type"
+                    selectedKeys={new Set([discountType])}
+                    onSelectionChange={(keys) => {
+                      const value = Array.from(keys)[0];
+                      if (value === "percent" || value === "fixed") setDiscountType(value);
+                    }}
+                    disallowEmptySelection
+                  >
+                    <SelectItem key="percent">Percent</SelectItem>
+                    <SelectItem key="fixed">Fixed ($)</SelectItem>
+                  </Select>
+                  <Input
+                    label="Discount value"
+                    type="number"
+                    value={discountValue}
+                    onValueChange={setDiscountValue}
+                  />
+                </div>
+                <Select
+                  label="Applies to"
+                  selectedKeys={new Set([appliesTo])}
+                  onSelectionChange={(keys) => {
+                    const value = Array.from(keys)[0];
+                    if (typeof value === "string") setAppliesTo(value as PlanName | "All");
+                  }}
+                  disallowEmptySelection
+                >
+                  {planOptions.map((option) => (
+                    <SelectItem key={option}>{option}</SelectItem>
+                  ))}
+                </Select>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Input
+                    label="Max redemptions"
+                    type="number"
+                    value={maxRedemptions}
+                    onValueChange={setMaxRedemptions}
+                  />
+                  <Input
+                    label="Expires at"
+                    type="date"
+                    value={expiresAt}
+                    onValueChange={setExpiresAt}
+                  />
+                </div>
+                <Switch isSelected={active} onValueChange={setActive}>
+                  Active immediately
+                </Switch>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={close}>
+                  Cancel
+                </Button>
+                <Button color="primary" onPress={handleCreate}>
+                  Create
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
+  );
+}

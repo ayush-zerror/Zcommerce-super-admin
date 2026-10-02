@@ -1,0 +1,59 @@
+import { Drawer, DrawerBody, DrawerContent } from "@heroui/react";
+import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "./Sidebar";
+import { Topbar } from "./Topbar";
+
+const COLLAPSE_KEY = "zcommerce-sidebar-collapsed";
+
+export function DashboardLayout() {
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem(COLLAPSE_KEY) === "true";
+  });
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(COLLAPSE_KEY, String(collapsed));
+  }, [collapsed]);
+
+  return (
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-content">
+      <div className="shrink-0">
+        <Topbar onOpenMobileNav={() => setMobileOpen(true)} />
+      </div>
+
+      <div className="flex min-h-0 flex-1 gap-10 overflow-hidden">
+        <div className="hidden h-full shrink-0 lg:block">
+          <Sidebar
+            collapsed={collapsed}
+            onToggleCollapse={() => setCollapsed((prev) => !prev)}
+          />
+        </div>
+
+        <Drawer
+          isOpen={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          placement="left"
+          size="xs"
+          hideCloseButton
+        >
+          <DrawerContent>
+            <DrawerBody className="h-full p-0">
+              <Sidebar
+                collapsed={false}
+                onToggleCollapse={() => setMobileOpen(false)}
+                onNavigate={() => setMobileOpen(false)}
+              />
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer>
+
+        <main className="custom-scroll min-h-0 flex-1 overflow-y-auto py-4 pl-10 pr-10 sm:py-6 lg:pl-0">
+          <div className="mx-auto w-full max-w-[1400px]">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
