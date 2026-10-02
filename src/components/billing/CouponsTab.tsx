@@ -126,7 +126,7 @@ export function CouponsTab({
       case "discount":
         return coupon.discountType === "percent"
           ? `${coupon.discountValue}%`
-          : `$${coupon.discountValue}`;
+          : `₹${coupon.discountValue}`;
       case "appliesTo":
         return coupon.appliesTo;
       case "redemptions":
@@ -190,7 +190,7 @@ export function CouponsTab({
     onCreateOpenChange(false);
     resetForm();
     addToast({
-      title: "Coupon created",
+      title: "Discount created",
       description: `${trimmed} is ready to use (local demo).`,
       color: "success",
     });
@@ -203,7 +203,7 @@ export function CouponsTab({
           <TableToolbar
             search={search}
             onSearchChange={setSearch}
-            searchPlaceholder="Search for coupon details..."
+            searchPlaceholder="Search for discount details..."
             columns={[...columns].map((column) => ({
               key: column.key,
               label: column.label,
@@ -223,7 +223,7 @@ export function CouponsTab({
             }
           />
           <Table
-            aria-label="Coupons table"
+            aria-label="Discounts table"
             classNames={dataTableFillClassNames}
           >
             <TableHeader columns={headerColumns}>
@@ -251,9 +251,9 @@ export function CouponsTab({
               items={filtered}
               emptyContent={
                 <NoDataPlaceholder
-                  title="No coupons yet"
+                  title="No discounts yet"
                   description="Create a discount code to get started."
-                  buttonLabel="Create coupon"
+                  buttonLabel="Create discount"
                   onButtonClick={() => onCreateOpenChange(true)}
                 />
               }
@@ -282,7 +282,7 @@ export function CouponsTab({
         <ModalContent>
           {(close) => (
             <>
-              <ModalHeader>Create coupon</ModalHeader>
+              <ModalHeader>Create discount</ModalHeader>
               <ModalBody className="gap-3">
                 <Input label="Code" value={code} onValueChange={setCode} placeholder="SAVE20" />
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -296,7 +296,7 @@ export function CouponsTab({
                     disallowEmptySelection
                   >
                     <SelectItem key="percent">Percent</SelectItem>
-                    <SelectItem key="fixed">Fixed ($)</SelectItem>
+                    <SelectItem key="fixed">Fixed (₹)</SelectItem>
                   </Select>
                   <Input
                     label="Discount value"

@@ -1,4 +1,6 @@
 import {
+  addToast,
+  Button,
   Pagination,
   Skeleton,
   Table,
@@ -9,10 +11,19 @@ import {
   TableRow,
   type SortDescriptor,
 } from "@heroui/react";
+import { LogIn } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Client } from "../../types";
-import { formatCurrency, formatDate, formatDateTime, formatNumber } from "../../lib/utils";
+import type { Client, Subscription } from "../../types";
+import { subscriptions } from "../../lib/mockData";
+import {
+  daysUntil,
+  formatDate,
+  formatNumber,
+  isExpiringSoon,
+} from "../../lib/utils";
+import { secondaryButtonClassName } from "../common/buttonStyles";
+import { ConfirmModal } from "../common/ConfirmModal";
 import { dataTableClassNames } from "../common/dataTableStyles";
 import { StatusChip } from "../common/StatusChip";
 import { NoDataPlaceholder } from "../common/NoDataPlaceholder";
@@ -24,32 +35,70 @@ export interface ClientsTableProps {
   visibleColumns?: string[];
 }
 
-type SortableColumn =
+type ColumnKey =
   | "storeName"
-  | "ownerEmail"
   | "plan"
   | "status"
+  | "renewalDate"
   | "mrr"
   | "orders30d"
-  | "lastActive"
-  | "joinedDate";
+  | "actions";
 
-const allColumns: { key: SortableColumn; label: string; allowsSorting?: boolean }[] = [
-  { key: "storeName", label: "Store Name", allowsSorting: true },
-  { key: "ownerEmail", label: "Owner Email", allowsSorting: true },
+const allColumns: { key: ColumnKey; label: string; allowsSorting?: boolean }[] = [
+  { key: "storeName", label: "Store", allowsSorting: true },
   { key: "plan", label: "Plan", allowsSorting: true },
   { key: "status", label: "Status", allowsSorting: true },
-  { key: "mrr", label: "MRR", allowsSorting: true },
+  { key: "renewalDate", label: "Renewal / Due", allowsSorting: true },
+  { key: "mrr", label: "MRR (₹)", allowsSorting: true },
   { key: "orders30d", label: "Orders (30d)", allowsSorting: true },
-  { key: "lastActive", label: "Last Active", allowsSorting: true },
-  { key: "joinedDate", label: "Joined Date", allowsSorting: true },
 ];
 
 const PAGE_SIZE = 10;
 
-function compareClients(a: Client, b: Client, column: SortableColumn): number {
-  const left = a[column];
-  const right = b[column];
+function renewalLabel(sub: Subscription): {
+  text: string;
+  tone: "default" | "warning" | "danger";
+} {
+  const days = daysUntil(sub.renewalDate);
+  if (sub.status === "past_due") {
+    return {
+      text: `Overdue by ${Math.abs(days)}d · ${formatDate(sub.renewalDate)}`,
+      tone: "danger",
+    };
+  }
+  if (sub.status === "canceled") {
+    return { text: `Ended ${formatDate(sub.renewalDate)}`, tone: "default" };
+  }
+  if (days < 0) {
+    return { text: `Overdue · ${formatDate(sub.renewalDate)}`, tone: "danger" };
+  }
+  if (isExpiringSoon(sub.renewalDate, 7)) {
+    return {
+      text:
+        days === 0
+          ? `Due today · ${formatDate(sub.renewalDate)}`
+          : `Expires in ${days}d · ${formatDate(sub.renewalDate)}`,
+      tone: "warning",
+    };
+  }
+  return { text: formatDate(sub.renewalDate), tone: "default" };
+}
+
+function compareClients(
+  a: Client,
+  b: Client,
+  column: ColumnKey,
+  byClientId: Map<string, Subscription>,
+): number {
+  if (column === "renewalDate") {
+    const left = byClientId.get(a.id)?.renewalDate ?? "";
+    const right = byClientId.get(b.id)?.renewalDate ?? "";
+    return left.localeCompare(right);
+  }
+  if (column === "actions") return 0;
+
+  const left = a[column as keyof Client];
+  const right = b[column as keyof Client];
   if (typeof left === "number" && typeof right === "number") return left - right;
   return String(left).localeCompare(String(right), undefined, {
     numeric: true,
@@ -66,9 +115,16 @@ export function ClientsTable({
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: "joinedDate",
-    direction: "descending",
+    column: "storeName",
+    direction: "ascending",
   });
+  const [loginClient, setLoginClient] = useState<Client | null>(null);
+
+  const subscriptionByClientId = useMemo(() => {
+    const map = new Map<string, Subscription>();
+    subscriptions.forEach((sub) => map.set(sub.clientId, sub));
+    return map;
+  }, []);
 
   const dataColumns = useMemo(() => {
     if (!visibleColumns?.length) return allColumns;
@@ -76,7 +132,11 @@ export function ClientsTable({
   }, [visibleColumns]);
 
   const headerColumns = useMemo(
-    () => [{ key: "select", label: "", allowsSorting: false as boolean | undefined }, ...dataColumns],
+    () => [
+      { key: "select", label: "", allowsSorting: false as boolean | undefined },
+      ...dataColumns,
+      { key: "actions", label: "Actions", allowsSorting: false as boolean | undefined },
+    ],
     [dataColumns],
   );
 
@@ -86,11 +146,13 @@ export function ClientsTable({
   }, [clients]);
 
   const sorted = useMemo(() => {
-    const column = (sortDescriptor.column as SortableColumn) ?? "joinedDate";
-    if (column === ("select" as SortableColumn)) return clients;
-    const items = [...clients].sort((a, b) => compareClients(a, b, column));
+    const column = (sortDescriptor.column as ColumnKey) ?? "storeName";
+    if (column === ("select" as ColumnKey)) return clients;
+    const items = [...clients].sort((a, b) =>
+      compareClients(a, b, column, subscriptionByClientId),
+    );
     return sortDescriptor.direction === "descending" ? items.reverse() : items;
-  }, [clients, sortDescriptor]);
+  }, [clients, sortDescriptor, subscriptionByClientId]);
 
   const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -132,28 +194,60 @@ export function ClientsTable({
       );
     }
 
-    switch (key as SortableColumn) {
+    const subscription = subscriptionByClientId.get(client.id);
+    const renewal = subscription ? renewalLabel(subscription) : null;
+
+    switch (key as ColumnKey) {
       case "storeName":
         return (
           <div>
             <p className="font-medium text-foreground">{client.storeName}</p>
-            <p className="text-xs text-default-400">{client.ownerName}</p>
+            <p className="text-xs text-default-400">{client.ownerEmail}</p>
           </div>
         );
-      case "ownerEmail":
-        return client.ownerEmail;
       case "plan":
         return <StatusChip kind="plan" value={client.plan} />;
       case "status":
         return <StatusChip kind="client" value={client.status} />;
+      case "renewalDate":
+        if (!renewal) return <span className="text-default-400">—</span>;
+        return (
+          <span
+            className={
+              renewal.tone === "danger"
+                ? "text-sm font-medium text-danger"
+                : renewal.tone === "warning"
+                  ? "text-sm font-medium text-warning"
+                  : "text-sm text-default-600"
+            }
+          >
+            {renewal.text}
+          </span>
+        );
       case "mrr":
-        return <span className="font-medium">{formatCurrency(client.mrr)}</span>;
+        return <span className="font-medium">{formatNumber(client.mrr)}</span>;
       case "orders30d":
         return formatNumber(client.orders30d);
-      case "lastActive":
-        return formatDateTime(client.lastActive);
-      case "joinedDate":
-        return formatDate(client.joinedDate);
+      case "actions":
+        return (
+          <div
+            className="flex justify-end"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <Button
+              size="sm"
+              radius="full"
+              variant="bordered"
+              color="primary"
+              className={secondaryButtonClassName}
+              startContent={<LogIn size={14} strokeWidth={2.5} />}
+              onPress={() => setLoginClient(client)}
+            >
+              Login
+            </Button>
+          </div>
+        );
       default:
         return "—";
     }
@@ -188,6 +282,10 @@ export function ClientsTable({
                     });
                   }}
                 />
+              </TableColumn>
+            ) : column.key === "actions" ? (
+              <TableColumn key="actions" align="end" allowsSorting={false}>
+                {column.label}
               </TableColumn>
             ) : (
               <TableColumn key={column.key} allowsSorting={column.allowsSorting}>
@@ -233,6 +331,24 @@ export function ClientsTable({
           classNames={{ cursor: "bg-primary" }}
         />
       </div>
+
+      <ConfirmModal
+        isOpen={loginClient !== null}
+        onClose={() => setLoginClient(null)}
+        title={loginClient ? `Login as ${loginClient.storeName}?` : ""}
+        description="This would open an impersonation session in production. In this demo, only a toast is shown."
+        confirmLabel="Continue"
+        confirmColor="primary"
+        onConfirm={() => {
+          if (!loginClient) return;
+          addToast({
+            title: "Impersonation started (demo)",
+            description: `You would now be logged in as ${loginClient.ownerEmail}.`,
+            color: "primary",
+          });
+          setLoginClient(null);
+        }}
+      />
     </div>
   );
 }

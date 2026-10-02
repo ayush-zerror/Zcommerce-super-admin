@@ -1,4 +1,4 @@
-import { addToast, Button, Card, CardBody, Tab, Tabs } from "@heroui/react";
+import { addToast, Button, Card, CardBody } from "@heroui/react";
 import { LogIn } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
@@ -17,7 +17,6 @@ export function ClientDetail() {
   const navigate = useNavigate();
   const { getClient, setClientStatus, deleteClient } = useClients();
   const [loginOpen, setLoginOpen] = useState(false);
-  const [tab, setTab] = useState("overview");
 
   const client = id ? getClient(id) : undefined;
 
@@ -92,43 +91,19 @@ export function ClientDetail() {
         }
       />
 
-      <Tabs
-        aria-label="Client detail tabs"
-        selectedKey={tab}
-        onSelectionChange={(key) => setTab(String(key))}
-        variant="underlined"
-        color="primary"
-        classNames={{
-          tabList: "gap-4 w-full relative rounded-none p-0 border-b border-divider",
-          cursor: "w-full bg-primary",
-          tab: "max-w-fit px-0 h-11",
-          panel: "pt-5",
-        }}
-      >
-        <Tab key="overview" title="Overview">
-          <ClientOverviewTab client={client} />
-        </Tab>
-        <Tab key="billing" title="Billing History">
-          <ClientBillingTab
-            client={client}
-            subscription={subscription}
-            transactions={clientTransactions}
-          />
-        </Tab>
-        <Tab key="usage" title="Usage">
-          <ClientUsageTab client={client} plan={plan} />
-        </Tab>
-        <Tab key="danger" title="Danger Zone">
-          <ClientDangerZone
-            client={client}
-            onStatusChange={(status) => setClientStatus(client.id, status)}
-            onDelete={() => {
-              deleteClient(client.id);
-              navigate("/clients");
-            }}
-          />
-        </Tab>
-      </Tabs>
+      <div className="space-y-6">
+        <ClientOverviewTab client={client} subscription={subscription} />
+        <ClientBillingTab transactions={clientTransactions} />
+        <ClientUsageTab client={client} plan={plan} />
+        <ClientDangerZone
+          client={client}
+          onStatusChange={(status) => setClientStatus(client.id, status)}
+          onDelete={() => {
+            deleteClient(client.id);
+            navigate("/clients");
+          }}
+        />
+      </div>
 
       <ConfirmModal
         isOpen={loginOpen}

@@ -127,7 +127,7 @@ export function RevenueReportsTab() {
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v: number) => formatCurrency(v, "USD", true)}
+                  tickFormatter={(v: number) => formatCurrency(v, "INR", true)}
               />
               <Tooltip content={<ChartTooltip />} />
               <Legend />

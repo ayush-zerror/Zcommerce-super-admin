@@ -5,14 +5,12 @@ import {
   HiOutlineArrowTrendingUp,
   HiOutlineUsers,
 } from "react-icons/hi2";
-import { ActivityFeed } from "../components/dashboard/ActivityFeed";
 import { PlanChart } from "../components/dashboard/PlanChart";
 import { RevenueChart } from "../components/dashboard/RevenueChart";
 import { StatCard } from "../components/dashboard/StatCard";
 import { TopClientsTable } from "../components/dashboard/TopClientsTable";
 import { PageHeader } from "../components/common/PageHeader";
 import {
-  activityFeed,
   dashboardStats,
   planDistribution,
   revenueTrend,
@@ -46,17 +44,17 @@ export function Home() {
           isLoading={loading}
         />
         <StatCard
-          title="Active Clients"
-          value={formatNumber(dashboardStats.activeClients)}
-          change={dashboardStats.activeClientsChange}
-          icon={HiOutlineUsers}
+          title="Monthly Recurring Revenue (₹)"
+          value={formatNumber(dashboardStats.mrr)}
+          change={dashboardStats.mrrChange}
+          icon={HiOutlineArrowTrendingUp}
           isLoading={loading}
         />
         <StatCard
-          title="MRR"
-          value={formatCurrency(dashboardStats.mrr)}
-          change={dashboardStats.mrrChange}
-          icon={HiOutlineArrowTrendingUp}
+          title="Total Stores"
+          value={formatNumber(dashboardStats.activeClients)}
+          change={dashboardStats.activeClientsChange}
+          icon={HiOutlineUsers}
           isLoading={loading}
         />
         <StatCard
@@ -75,11 +73,8 @@ export function Home() {
         <PlanChart data={planDistribution} isLoading={loading} />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <TopClientsTable clients={clients} isLoading={loading} />
-        </div>
-        <ActivityFeed items={activityFeed} isLoading={loading} />
+      <div className="mt-4">
+        <TopClientsTable clients={clients} isLoading={loading} />
       </div>
     </div>
   );

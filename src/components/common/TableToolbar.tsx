@@ -99,7 +99,7 @@ export function TableToolbar({
                 radius="full"
                 size="sm"
                 className={secondaryButtonClassName}
-                endContent={<ListFilter size={14} />}
+                endContent={<ListFilter size={14} strokeWidth={2.5} />}
               >
                 Filters
               </Button>
@@ -115,7 +115,7 @@ export function TableToolbar({
             radius="full"
             size="sm"
             className={secondaryButtonClassName}
-            endContent={<ListFilter size={14} />}
+            endContent={<ListFilter size={14} strokeWidth={2.5} />}
           >
             Filters
           </Button>

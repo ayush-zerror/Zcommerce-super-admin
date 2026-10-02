@@ -9,7 +9,7 @@ import {
   YAxis,
 } from "recharts";
 import type { RevenuePoint } from "../../types";
-import { formatCurrency } from "../../lib/utils";
+import { formatCurrency, formatNumber } from "../../lib/utils";
 
 export interface RevenueChartProps {
   data: RevenuePoint[];
@@ -35,7 +35,9 @@ function ChartTooltip({ active, payload, label }: CustomTooltipProps) {
       {payload.map((entry) => (
         <p key={String(entry.dataKey)} className="text-sm font-semibold">
           {entry.dataKey === "revenue" ? "Revenue" : "MRR"}:{" "}
-          {formatCurrency(entry.value ?? 0)}
+          {entry.dataKey === "mrr"
+            ? formatNumber(entry.value ?? 0)
+            : formatCurrency(entry.value ?? 0)}
         </p>
       ))}
     </div>
@@ -67,7 +69,7 @@ export function RevenueChart({ data, isLoading }: RevenueChartProps) {
                   tickLine={false}
                   axisLine={false}
                   tick={{ fontSize: 12, fill: "hsl(var(--heroui-default-500))" }}
-                  tickFormatter={(v: number) => formatCurrency(v, "USD", true)}
+                  tickFormatter={(v: number) => formatCurrency(v, "INR", true)}
                 />
                 <Tooltip content={<ChartTooltip />} />
                 <Line

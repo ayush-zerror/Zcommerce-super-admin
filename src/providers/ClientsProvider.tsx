@@ -12,6 +12,7 @@ import type { Client, ClientStatus } from "../types";
 interface ClientsContextValue {
   clients: Client[];
   getClient: (id: string) => Client | undefined;
+  addClient: (client: Client) => void;
   updateClient: (id: string, patch: Partial<Client>) => void;
   setClientStatus: (id: string, status: ClientStatus) => void;
   deleteClient: (id: string) => void;
@@ -26,6 +27,10 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     (id: string) => clients.find((client) => client.id === id),
     [clients],
   );
+
+  const addClient = useCallback((client: Client) => {
+    setClients((prev) => [client, ...prev]);
+  }, []);
 
   const updateClient = useCallback((id: string, patch: Partial<Client>) => {
     setClients((prev) =>
@@ -55,11 +60,12 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     () => ({
       clients,
       getClient,
+      addClient,
       updateClient,
       setClientStatus,
       deleteClient,
     }),
-    [clients, deleteClient, getClient, setClientStatus, updateClient],
+    [addClient, clients, deleteClient, getClient, setClientStatus, updateClient],
   );
 
   return (

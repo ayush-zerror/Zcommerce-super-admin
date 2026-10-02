@@ -22,7 +22,7 @@ export function DashboardLayout() {
         <Topbar onOpenMobileNav={() => setMobileOpen(true)} />
       </div>
 
-      <div className="flex min-h-0 flex-1 gap-10 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <div className="hidden h-full shrink-0 lg:block">
           <Sidebar
             collapsed={collapsed}
@@ -48,7 +48,7 @@ export function DashboardLayout() {
           </DrawerContent>
         </Drawer>
 
-        <main className="custom-scroll min-h-0 flex-1 overflow-y-auto py-4 pl-10 pr-10 sm:py-6 lg:pl-0">
+        <main className="custom-scroll min-h-0 flex-1 overflow-y-auto px-10 py-4 sm:py-6">
           <div className="mx-auto w-full max-w-[1400px]">
             <Outlet />
           </div>

@@ -3,8 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
-import { IoIosCard } from "react-icons/io";
-import { IoCard, IoHome, IoPeople, IoSettingsSharp } from "react-icons/io5";
+import { IoAnalytics, IoCard, IoHome, IoPeople, IoSettingsSharp } from "react-icons/io5";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "../../lib/utils";
 
@@ -29,17 +28,15 @@ export const mainNavItems: NavItem[] = [
     icon: IoCard,
     children: [
       { label: "Subscriptions", href: "/billing/subscriptions" },
-      { label: "Coupons", href: "/billing/coupons" },
-      { label: "Revenue Reports", href: "/billing/reports" },
+      { label: "Transactions", href: "/billing/transactions" },
     ],
   },
   {
-    label: "Payments",
-    href: "/payments",
-    icon: IoIosCard,
+    label: "Analytics",
+    href: "/analytics",
+    icon: IoAnalytics,
     children: [
-      { label: "Transactions", href: "/payments/transactions" },
-      { label: "Payouts", href: "/payments/payouts" },
+      { label: "Revenue Reports", href: "/analytics/revenue" },
     ],
   },
   {
@@ -47,8 +44,7 @@ export const mainNavItems: NavItem[] = [
     href: "/settings",
     icon: IoSettingsSharp,
     children: [
-      { label: "Roles & Users", href: "/settings/users" },
-      { label: "Platform Settings", href: "/settings/platform" },
+      { label: "Discounts", href: "/settings/discounts" },
     ],
   },
 ];

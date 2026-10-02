@@ -108,7 +108,7 @@ export function ProfileDropdown() {
             <button
               type="button"
               className="inline-flex items-center gap-2 text-sm font-medium text-foreground transition-opacity hover:opacity-70"
-              onClick={() => navigate("/settings/users")}
+              onClick={() => navigate("/settings/discounts")}
             >
               <Settings size={16} fill="currentColor" strokeWidth={0} />
               Account Settings

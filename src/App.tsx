@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./components/auth/RequireAuth";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
+import { Analytics } from "./pages/Analytics";
 import { Billing } from "./pages/Billing";
 import { ClientDetail } from "./pages/ClientDetail";
 import { Clients } from "./pages/Clients";
 import { Home } from "./pages/Home";
-import { Payments } from "./pages/Payments";
 import { Settings } from "./pages/Settings";
 import { SignIn } from "./pages/SignIn";
 import { useAuth } from "./providers/AuthProvider";
@@ -38,10 +38,10 @@ export default function App() {
           <Route path="billing" element={<Navigate to="/billing/subscriptions" replace />} />
           <Route path="billing/:section" element={<Billing />} />
 
-          <Route path="payments" element={<Navigate to="/payments/transactions" replace />} />
-          <Route path="payments/:section" element={<Payments />} />
+          <Route path="analytics" element={<Navigate to="/analytics/revenue" replace />} />
+          <Route path="analytics/:section" element={<Analytics />} />
 
-          <Route path="settings" element={<Navigate to="/settings/users" replace />} />
+          <Route path="settings" element={<Navigate to="/settings/discounts" replace />} />
           <Route path="settings/:section" element={<Settings />} />
         </Route>
       </Route>

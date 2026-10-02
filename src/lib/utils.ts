@@ -1,9 +1,9 @@
 export function formatCurrency(
   value: number,
-  currency = "USD",
+  currency = "INR",
   compact = false,
 ): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency,
     notation: compact ? "compact" : "standard",

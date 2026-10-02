@@ -1,7 +1,7 @@
 import { addToast, Button, Input } from "@heroui/react";
 import { useState, type FormEvent } from "react";
 import { HiOutlineEye, HiOutlineEyeSlash } from "react-icons/hi2";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 
 export function SignIn() {
@@ -37,101 +37,142 @@ export function SignIn() {
     navigate("/", { replace: true });
   };
 
+  const inputClassNames = {
+    input: "text-[13px] !text-zinc-100 placeholder:text-zinc-600",
+    inputWrapper:
+      "bg-zinc-900/80 border-zinc-800/90 shadow-none h-10 data-[hover=true]:bg-zinc-900 data-[hover=true]:border-zinc-700 group-data-[focus=true]:border-zinc-500 transition-colors",
+  };
+
   return (
-    <div className="grid min-h-dvh grid-cols-1 bg-white lg:grid-cols-2">
-      <aside className="relative hidden overflow-hidden bg-black lg:block">
-        <img
-          src="/signin.avif"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover object-left"
-        />
-      </aside>
+    <div className="relative flex min-h-dvh flex-col bg-[#050505]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(59,130,246,0.12),transparent)]"
+      />
 
-      <main className="relative flex min-h-dvh flex-col px-6 py-10 sm:px-10 lg:px-16">
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
-          <h1 className="text-2xl font-bold tracking-tight text-[#1e293b] sm:text-3xl">
-            Yooo, welcome back!
-          </h1>
-          <p className="mt-1.5 text-xs text-default-500 sm:text-sm">
-            Sign in to access your dashboard
-          </p>
+      <header className="relative z-10 flex h-14 shrink-0 items-center px-4 sm:px-6">
+        <div className="flex flex-col leading-tight">
+          <span className="text-sm font-extrabold tracking-[0.14em] text-white sm:text-base">
+            ZCOMMERCE
+          </span>
+          <span className="text-[11px] font-medium text-white/60">
+            Super admin panel
+          </span>
+        </div>
+      </header>
 
-          <form className="mt-8 space-y-7" onSubmit={handleSubmit}>
-            <Input
-              label="Email address"
-              type="email"
-              variant="underlined"
-              value={email}
-              onValueChange={setEmail}
-              isRequired
-              autoComplete="email"
-              classNames={{
-                label: "text-default-500",
-                input: "text-foreground",
-                inputWrapper:
-                  "border-b border-default-300 shadow-none after:!bg-primary",
-              }}
-            />
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 pb-16 pt-4">
+        <div className="w-full max-w-[360px]">
+          <div className="mb-7">
+            <h1 className="text-xl font-semibold tracking-tight text-white">
+              Sign in
+            </h1>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500">
+              Access your workspace with your admin credentials.
+            </p>
+          </div>
 
-            <Input
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              variant="underlined"
-              value={password}
-              onValueChange={setPassword}
-              isRequired
-              autoComplete="current-password"
-              endContent={
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="signin-email"
+                className="text-[12px] font-medium text-zinc-400"
+              >
+                Email
+              </label>
+              <Input
+                id="signin-email"
+                aria-label="Email"
+                type="email"
+                placeholder="you@company.com"
+                variant="bordered"
+                radius="md"
+                value={email}
+                onValueChange={setEmail}
+                isRequired
+                autoComplete="email"
+                classNames={inputClassNames}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="signin-password"
+                  className="text-[12px] font-medium text-zinc-400"
+                >
+                  Password
+                </label>
                 <button
                   type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="text-default-400 transition-colors hover:text-default-600"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="text-[12px] font-medium text-zinc-500 transition-colors hover:text-zinc-300"
+                  onClick={() =>
+                    addToast({
+                      title: "Contact your admin",
+                      description:
+                        "Password reset is handled by your workspace owner.",
+                      color: "primary",
+                    })
+                  }
                 >
-                  {showPassword ? (
-                    <HiOutlineEyeSlash size={18} />
-                  ) : (
-                    <HiOutlineEye size={18} />
-                  )}
+                  Forgot password?
                 </button>
-              }
-              classNames={{
-                label: "text-default-500",
-                input: "text-foreground",
-                inputWrapper:
-                  "border-b border-default-300 shadow-none after:!bg-primary",
-              }}
-            />
+              </div>
+              <Input
+                id="signin-password"
+                aria-label="Password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                variant="bordered"
+                radius="md"
+                value={password}
+                onValueChange={setPassword}
+                isRequired
+                autoComplete="current-password"
+                endContent={
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="text-zinc-500 transition-colors hover:text-zinc-300"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? (
+                      <HiOutlineEyeSlash size={15} />
+                    ) : (
+                      <HiOutlineEye size={15} />
+                    )}
+                  </button>
+                }
+                classNames={inputClassNames}
+              />
+            </div>
 
             <Button
               type="submit"
-              color="primary"
-              radius="lg"
-              size="sm"
-              className="h-10 w-full text-sm font-semibold"
+              radius="md"
+              className="mt-1 h-10 w-full bg-white text-[13px] font-semibold text-zinc-950 data-[hover=true]:bg-zinc-200"
               isLoading={submitting}
+              spinner={
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-950/20 border-t-zinc-950" />
+              }
             >
-              Sign In
+              Continue
             </Button>
           </form>
-
-          <p className="mt-6 text-center text-xs leading-relaxed text-default-500">
-            You acknowledge that you have read and agreed to our{" "}
-            <Link to="#" className="font-medium text-foreground underline">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link to="#" className="font-medium text-foreground underline">
-              Privacy Policy
-            </Link>
-            .
-          </p>
         </div>
+      </div>
 
-        <p className="mt-10 text-center text-sm text-foreground">
-          Developed by <span className="font-semibold">Zerror Studios</span>
-        </p>
-      </main>
+      <p className="relative z-10 pb-6 text-center text-[11px] text-zinc-600">
+        © {new Date().getFullYear()} Zcommerce ·{" "}
+        <a
+          href="https://www.zerrorstudios.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors hover:text-white hover:underline"
+        >
+          Zerror Studios
+        </a>
+      </p>
     </div>
   );
 }

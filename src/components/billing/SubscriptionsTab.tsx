@@ -17,8 +17,8 @@ import { useNavigate } from "react-router-dom";
 import type { Subscription, SubscriptionStatus } from "../../types";
 import {
   daysUntil,
-  formatCurrency,
   formatDate,
+  formatNumber,
   isExpiringSoon,
 } from "../../lib/utils";
 import { dataTableClassNames, tablePanelClassName } from "../common/dataTableStyles";
@@ -48,8 +48,7 @@ const columns = [
   { key: "plan", label: "Plan" },
   { key: "status", label: "Status" },
   { key: "renewalDate", label: "Renewal / Due" },
-  { key: "amountDue", label: "Amount Due" },
-  { key: "mrr", label: "MRR" },
+  { key: "mrr", label: "MRR (₹)" },
 ] as const;
 
 function renewalLabel(sub: Subscription): {
@@ -143,10 +142,6 @@ export function SubscriptionsTab({ subscriptions }: SubscriptionsTabProps) {
       .sort((a, b) => daysUntil(a.renewalDate) - daysUntil(b.renewalDate));
   }, [filter, search, subscriptions]);
 
-  const dueTotal = subscriptions
-    .filter((s) => s.amountDue > 0)
-    .reduce((sum, s) => sum + s.amountDue, 0);
-
   const dataColumns = columns.filter((column) =>
     visibleColumns.includes(column.key),
   );
@@ -216,16 +211,8 @@ export function SubscriptionsTab({ subscriptions }: SubscriptionsTabProps) {
             {renewal.text}
           </span>
         );
-      case "amountDue":
-        return sub.amountDue > 0 ? (
-          <span className="font-medium text-danger">
-            {formatCurrency(sub.amountDue)}
-          </span>
-        ) : (
-          <span className="text-default-400">—</span>
-        );
       case "mrr":
-        return formatCurrency(sub.mrr);
+        return formatNumber(sub.mrr);
       default:
         return "—";
     }
@@ -233,7 +220,7 @@ export function SubscriptionsTab({ subscriptions }: SubscriptionsTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Card shadow="none">
           <CardBody className="flex flex-row items-center gap-3 p-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10 text-danger">
@@ -253,17 +240,6 @@ export function SubscriptionsTab({ subscriptions }: SubscriptionsTabProps) {
             <div>
               <p className="text-xs text-default-500">Expiring in 7 days</p>
               <p className="text-lg font-bold">{counts.expiring}</p>
-            </div>
-          </CardBody>
-        </Card>
-        <Card shadow="none">
-          <CardBody className="flex flex-row items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <span className="text-sm font-bold">$</span>
-            </div>
-            <div>
-              <p className="text-xs text-default-500">Total amount due</p>
-              <p className="text-lg font-bold">{formatCurrency(dueTotal)}</p>
             </div>
           </CardBody>
         </Card>
