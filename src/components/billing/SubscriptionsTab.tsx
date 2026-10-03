@@ -10,11 +10,13 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  type Selection,
 } from "@heroui/react";
 import { AlertTriangle, Clock3 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Subscription, SubscriptionStatus } from "../../types";
+import { selectionToIdSet } from "../../lib/tableSelection";
 import {
   daysUntil,
   formatDate,
@@ -24,11 +26,7 @@ import {
 import { dataTableClassNames, tablePanelClassName } from "../common/dataTableStyles";
 import { StatusChip } from "../common/StatusChip";
 import { NoDataPlaceholder } from "../common/NoDataPlaceholder";
-import {
-  TableRowCheckbox,
-  TableSelectAll,
-  TableToolbar,
-} from "../common/TableToolbar";
+import { TableToolbar } from "../common/TableToolbar";
 
 export type SubscriptionFilter =
   | "all"
@@ -145,33 +143,13 @@ export function SubscriptionsTab({ subscriptions }: SubscriptionsTabProps) {
   const dataColumns = columns.filter((column) =>
     visibleColumns.includes(column.key),
   );
-  const headerColumns = useMemo(
-    () => [{ key: "select", label: "" }, ...dataColumns],
-    [dataColumns],
-  );
+  const headerColumns = dataColumns;
 
-  const allSelected =
-    filtered.length > 0 && filtered.every((item) => selected.has(item.id));
-  const someSelected = filtered.some((item) => selected.has(item.id));
+  const handleSelectionChange = (keys: Selection) => {
+    setSelected(selectionToIdSet(keys, filtered.map((item) => item.id)));
+  };
 
   const renderCell = (sub: Subscription, key: string) => {
-    if (key === "select") {
-      return (
-        <TableRowCheckbox
-          ariaLabel={`Select ${sub.clientName}`}
-          isSelected={selected.has(sub.id)}
-          onValueChange={(checked) => {
-            setSelected((prev) => {
-              const next = new Set(prev);
-              if (checked) next.add(sub.id);
-              else next.delete(sub.id);
-              return next;
-            });
-          }}
-        />
-      );
-    }
-
     const renewal = renewalLabel(sub);
 
     switch (key) {
@@ -279,28 +257,18 @@ export function SubscriptionsTab({ subscriptions }: SubscriptionsTabProps) {
 
           <Table
             aria-label="Subscriptions table"
-            classNames={dataTableClassNames}
+            selectionMode="multiple"
+            selectedKeys={selected}
+            onSelectionChange={handleSelectionChange}
+            classNames={{
+              ...dataTableClassNames,
+              tr: "border-b border-default-100 last:border-b-0 hover:bg-default-50/80 data-[selected=true]:bg-primary/5",
+            }}
           >
             <TableHeader columns={headerColumns}>
-              {(column) =>
-                column.key === "select" ? (
-                  <TableColumn key="select" width={48}>
-                    <TableSelectAll
-                      isSelected={allSelected}
-                      isIndeterminate={someSelected && !allSelected}
-                      onValueChange={(checked) => {
-                        setSelected(
-                          checked
-                            ? new Set(filtered.map((item) => item.id))
-                            : new Set(),
-                        );
-                      }}
-                    />
-                  </TableColumn>
-                ) : (
-                  <TableColumn key={column.key}>{column.label}</TableColumn>
-                )
-              }
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
+              )}
             </TableHeader>
             <TableBody
               items={filtered}

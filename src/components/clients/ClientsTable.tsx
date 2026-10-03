@@ -9,6 +9,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  type Selection,
   type SortDescriptor,
 } from "@heroui/react";
 import { LogIn } from "lucide-react";
@@ -16,6 +17,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Client, Subscription } from "../../types";
 import { subscriptions } from "../../lib/mockData";
+import { getStoreHealth } from "../../lib/storeHealth";
+import { selectionToIdSet } from "../../lib/tableSelection";
 import {
   daysUntil,
   formatDate,
@@ -25,9 +28,9 @@ import {
 import { secondaryButtonClassName } from "../common/buttonStyles";
 import { ConfirmModal } from "../common/ConfirmModal";
 import { dataTableClassNames } from "../common/dataTableStyles";
-import { StatusChip } from "../common/StatusChip";
 import { NoDataPlaceholder } from "../common/NoDataPlaceholder";
-import { TableRowCheckbox, TableSelectAll } from "../common/TableToolbar";
+import { StatusChip } from "../common/StatusChip";
+import { StoreHealthCell } from "../common/StoreHealthCell";
 
 export interface ClientsTableProps {
   clients: Client[];
@@ -39,18 +42,18 @@ type ColumnKey =
   | "storeName"
   | "plan"
   | "status"
+  | "storeHealth"
   | "renewalDate"
   | "mrr"
-  | "orders30d"
   | "actions";
 
 const allColumns: { key: ColumnKey; label: string; allowsSorting?: boolean }[] = [
   { key: "storeName", label: "Store", allowsSorting: true },
   { key: "plan", label: "Plan", allowsSorting: true },
   { key: "status", label: "Status", allowsSorting: true },
+  { key: "storeHealth", label: "Store Health", allowsSorting: true },
   { key: "renewalDate", label: "Renewal / Due", allowsSorting: true },
   { key: "mrr", label: "MRR (₹)", allowsSorting: true },
-  { key: "orders30d", label: "Orders (30d)", allowsSorting: true },
 ];
 
 const PAGE_SIZE = 10;
@@ -95,6 +98,11 @@ function compareClients(
     const right = byClientId.get(b.id)?.renewalDate ?? "";
     return left.localeCompare(right);
   }
+  if (column === "storeHealth") {
+    const left = getStoreHealth(a, byClientId.get(a.id)).score;
+    const right = getStoreHealth(b, byClientId.get(b.id)).score;
+    return left - right;
+  }
   if (column === "actions") return 0;
 
   const left = a[column as keyof Client];
@@ -133,7 +141,6 @@ export function ClientsTable({
 
   const headerColumns = useMemo(
     () => [
-      { key: "select", label: "", allowsSorting: false as boolean | undefined },
       ...dataColumns,
       { key: "actions", label: "Actions", allowsSorting: false as boolean | undefined },
     ],
@@ -147,7 +154,6 @@ export function ClientsTable({
 
   const sorted = useMemo(() => {
     const column = (sortDescriptor.column as ColumnKey) ?? "storeName";
-    if (column === ("select" as ColumnKey)) return clients;
     const items = [...clients].sort((a, b) =>
       compareClients(a, b, column, subscriptionByClientId),
     );
@@ -162,9 +168,17 @@ export function ClientsTable({
     return sorted.slice(start, start + PAGE_SIZE);
   }, [safePage, sorted]);
 
-  const allPageSelected =
-    pageItems.length > 0 && pageItems.every((item) => selected.has(item.id));
-  const somePageSelected = pageItems.some((item) => selected.has(item.id));
+  const handleSelectionChange = (keys: Selection) => {
+    const pageIds = pageItems.map((item) => item.id);
+    const pageSelected = selectionToIdSet(keys, pageIds);
+    setSelected((prev) => {
+      const next = new Set(
+        Array.from(prev).filter((id) => !pageIds.includes(id)),
+      );
+      pageSelected.forEach((id) => next.add(id));
+      return next;
+    });
+  };
 
   if (isLoading) {
     return (
@@ -177,23 +191,6 @@ export function ClientsTable({
   }
 
   const renderCell = (client: Client, key: string) => {
-    if (key === "select") {
-      return (
-        <TableRowCheckbox
-          ariaLabel={`Select ${client.storeName}`}
-          isSelected={selected.has(client.id)}
-          onValueChange={(checked) => {
-            setSelected((prev) => {
-              const next = new Set(prev);
-              if (checked) next.add(client.id);
-              else next.delete(client.id);
-              return next;
-            });
-          }}
-        />
-      );
-    }
-
     const subscription = subscriptionByClientId.get(client.id);
     const renewal = subscription ? renewalLabel(subscription) : null;
 
@@ -209,6 +206,10 @@ export function ClientsTable({
         return <StatusChip kind="plan" value={client.plan} />;
       case "status":
         return <StatusChip kind="client" value={client.status} />;
+      case "storeHealth":
+        return (
+          <StoreHealthCell client={client} subscription={subscription} />
+        );
       case "renewalDate":
         if (!renewal) return <span className="text-default-400">—</span>;
         return (
@@ -226,8 +227,6 @@ export function ClientsTable({
         );
       case "mrr":
         return <span className="font-medium">{formatNumber(client.mrr)}</span>;
-      case "orders30d":
-        return formatNumber(client.orders30d);
       case "actions":
         return (
           <div
@@ -257,33 +256,22 @@ export function ClientsTable({
     <div>
       <Table
         aria-label="Clients table"
+        selectionMode="multiple"
+        selectedKeys={selected}
+        onSelectionChange={handleSelectionChange}
         sortDescriptor={sortDescriptor}
         onSortChange={(descriptor) => {
           setSortDescriptor(descriptor);
           setPage(1);
         }}
-        classNames={dataTableClassNames}
+        classNames={{
+          ...dataTableClassNames,
+          tr: "border-b border-default-100 last:border-b-0 hover:bg-default-50/80 data-[selected=true]:bg-primary/5",
+        }}
       >
         <TableHeader columns={headerColumns}>
           {(column) =>
-            column.key === "select" ? (
-              <TableColumn key="select" width={48} allowsSorting={false}>
-                <TableSelectAll
-                  isSelected={allPageSelected}
-                  isIndeterminate={somePageSelected && !allPageSelected}
-                  onValueChange={(checked) => {
-                    setSelected((prev) => {
-                      const next = new Set(prev);
-                      pageItems.forEach((item) => {
-                        if (checked) next.add(item.id);
-                        else next.delete(item.id);
-                      });
-                      return next;
-                    });
-                  }}
-                />
-              </TableColumn>
-            ) : column.key === "actions" ? (
+            column.key === "actions" ? (
               <TableColumn key="actions" align="end" allowsSorting={false}>
                 {column.label}
               </TableColumn>

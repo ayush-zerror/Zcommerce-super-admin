@@ -139,14 +139,16 @@ export function TableSelectAll({
   onValueChange,
 }: TableSelectAllProps) {
   return (
-    <Checkbox
+    <input
+      type="checkbox"
       aria-label="Select all"
-      isSelected={isSelected}
-      isIndeterminate={isIndeterminate}
-      onValueChange={onValueChange}
-      color="primary"
-      size="sm"
-      classNames={{ wrapper: "before:border-primary" }}
+      checked={isSelected}
+      ref={(el) => {
+        if (el) el.indeterminate = !!isIndeterminate && !isSelected;
+      }}
+      onChange={(event) => onValueChange(event.target.checked)}
+      onClick={(event) => event.stopPropagation()}
+      className="h-4 w-4 cursor-pointer accent-[#3b82f6]"
     />
   );
 }
@@ -163,14 +165,13 @@ export function TableRowCheckbox({
   ariaLabel,
 }: TableRowCheckboxProps) {
   return (
-    <Checkbox
+    <input
+      type="checkbox"
       aria-label={ariaLabel}
-      isSelected={isSelected}
-      onValueChange={onValueChange}
-      color="primary"
-      size="sm"
-      classNames={{ wrapper: "before:border-primary" }}
+      checked={isSelected}
+      onChange={(event) => onValueChange(event.target.checked)}
       onClick={(event) => event.stopPropagation()}
+      className="h-4 w-4 cursor-pointer accent-[#3b82f6]"
     />
   );
 }

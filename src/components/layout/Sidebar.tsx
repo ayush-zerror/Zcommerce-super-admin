@@ -45,6 +45,7 @@ export const mainNavItems: NavItem[] = [
     icon: IoSettingsSharp,
     children: [
       { label: "Discounts", href: "/settings/discounts" },
+      { label: "Automation", href: "/settings/automation" },
     ],
   },
 ];

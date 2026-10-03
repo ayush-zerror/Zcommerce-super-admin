@@ -44,8 +44,8 @@ export function Home() {
           isLoading={loading}
         />
         <StatCard
-          title="Monthly Recurring Revenue (₹)"
-          value={formatNumber(dashboardStats.mrr)}
+          title="Monthly Recurring Revenue"
+          value={formatCurrency(dashboardStats.mrr)}
           change={dashboardStats.mrrChange}
           icon={HiOutlineArrowTrendingUp}
           isLoading={loading}

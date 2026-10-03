@@ -19,15 +19,15 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  type Selection,
 } from "@heroui/react";
 import { useMemo, useState } from "react";
 import type { Coupon, PlanName } from "../../types";
+import { selectionToIdSet } from "../../lib/tableSelection";
 import { formatDate } from "../../lib/utils";
 import { dataTableFillClassNames, tablePanelFillClassName } from "../common/dataTableStyles";
 import {
   FilterCheckboxGroup,
-  TableRowCheckbox,
-  TableSelectAll,
   TableToolbar,
 } from "../common/TableToolbar";
 import { NoDataPlaceholder } from "../common/NoDataPlaceholder";
@@ -93,33 +93,13 @@ export function CouponsTab({
   const dataColumns = columns.filter((column) =>
     visibleColumns.includes(column.key),
   );
-  const headerColumns = useMemo(
-    () => [{ key: "select", label: "" }, ...dataColumns],
-    [dataColumns],
-  );
+  const headerColumns = dataColumns;
 
-  const allSelected =
-    filtered.length > 0 && filtered.every((item) => selected.has(item.id));
-  const someSelected = filtered.some((item) => selected.has(item.id));
+  const handleSelectionChange = (keys: Selection) => {
+    setSelected(selectionToIdSet(keys, filtered.map((item) => item.id)));
+  };
 
   const renderCell = (coupon: Coupon, key: string) => {
-    if (key === "select") {
-      return (
-        <TableRowCheckbox
-          ariaLabel={`Select ${coupon.code}`}
-          isSelected={selected.has(coupon.id)}
-          onValueChange={(checked) => {
-            setSelected((prev) => {
-              const next = new Set(prev);
-              if (checked) next.add(coupon.id);
-              else next.delete(coupon.id);
-              return next;
-            });
-          }}
-        />
-      );
-    }
-
     switch (key) {
       case "code":
         return <span className="font-mono font-semibold">{coupon.code}</span>;
@@ -224,28 +204,18 @@ export function CouponsTab({
           />
           <Table
             aria-label="Discounts table"
-            classNames={dataTableFillClassNames}
+            selectionMode="multiple"
+            selectedKeys={selected}
+            onSelectionChange={handleSelectionChange}
+            classNames={{
+              ...dataTableFillClassNames,
+              tr: "border-b border-default-100 last:border-b-0 hover:bg-default-50/80 data-[selected=true]:bg-primary/5",
+            }}
           >
             <TableHeader columns={headerColumns}>
-              {(column) =>
-                column.key === "select" ? (
-                  <TableColumn key="select" width={48}>
-                    <TableSelectAll
-                      isSelected={allSelected}
-                      isIndeterminate={someSelected && !allSelected}
-                      onValueChange={(checked) => {
-                        setSelected(
-                          checked
-                            ? new Set(filtered.map((item) => item.id))
-                            : new Set(),
-                        );
-                      }}
-                    />
-                  </TableColumn>
-                ) : (
-                  <TableColumn key={column.key}>{column.label}</TableColumn>
-                )
-              }
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
+              )}
             </TableHeader>
             <TableBody
               items={filtered}

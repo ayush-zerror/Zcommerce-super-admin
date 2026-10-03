@@ -22,7 +22,6 @@ export interface ClientBillingTabProps {
 const txnColumns = [
   { key: "date", label: "Date" },
   { key: "amount", label: "Amount" },
-  { key: "gateway", label: "Gateway" },
   { key: "status", label: "Status" },
   { key: "transactionId", label: "Transaction ID" },
 ] as const;
@@ -65,7 +64,6 @@ export function ClientBillingTab({ transactions }: ClientBillingTabProps) {
                 <TableCell className="font-medium">
                   {formatCurrency(txn.amount, txn.currency)}
                 </TableCell>
-                <TableCell>{txn.gateway}</TableCell>
                 <TableCell>
                   <StatusChip kind="transaction" value={txn.status} />
                 </TableCell>

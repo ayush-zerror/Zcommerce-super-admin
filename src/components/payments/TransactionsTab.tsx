@@ -1,24 +1,23 @@
 import {
   Card,
   CardBody,
-  Chip,
   Table,
   TableBody,
   TableCell,
   TableColumn,
   TableHeader,
   TableRow,
+  type Selection,
 } from "@heroui/react";
 import { useMemo, useState } from "react";
 import type { Transaction, TransactionStatus } from "../../types";
+import { selectionToIdSet } from "../../lib/tableSelection";
 import { formatCurrency, formatDateTime } from "../../lib/utils";
 import { dataTableFillClassNames, tablePanelFillClassName } from "../common/dataTableStyles";
 import { StatusChip } from "../common/StatusChip";
 import { NoDataPlaceholder } from "../common/NoDataPlaceholder";
 import {
   FilterCheckboxGroup,
-  TableRowCheckbox,
-  TableSelectAll,
   TableToolbar,
 } from "../common/TableToolbar";
 
@@ -29,7 +28,6 @@ export interface TransactionsTabProps {
 const columnOptions = [
   { key: "clientName", label: "Client" },
   { key: "amount", label: "Amount" },
-  { key: "gateway", label: "Gateway" },
   { key: "status", label: "Status" },
   { key: "date", label: "Date" },
   { key: "transactionId", label: "Transaction ID" },
@@ -57,44 +55,18 @@ export function TransactionsTab({ transactions }: TransactionsTabProps) {
   }, [search, statuses, transactions]);
 
   const dataColumns = columnOptions.filter((c) => visibleColumns.includes(c.key));
-  const headerColumns = useMemo(
-    () => [{ key: "select", label: "" }, ...dataColumns],
-    [dataColumns],
-  );
+  const headerColumns = dataColumns;
 
-  const allSelected =
-    filtered.length > 0 && filtered.every((item) => selected.has(item.id));
-  const someSelected = filtered.some((item) => selected.has(item.id));
+  const handleSelectionChange = (keys: Selection) => {
+    setSelected(selectionToIdSet(keys, filtered.map((item) => item.id)));
+  };
 
   const renderCell = (txn: Transaction, key: string) => {
-    if (key === "select") {
-      return (
-        <TableRowCheckbox
-          ariaLabel={`Select ${txn.transactionId}`}
-          isSelected={selected.has(txn.id)}
-          onValueChange={(checked) => {
-            setSelected((prev) => {
-              const next = new Set(prev);
-              if (checked) next.add(txn.id);
-              else next.delete(txn.id);
-              return next;
-            });
-          }}
-        />
-      );
-    }
-
     switch (key) {
       case "clientName":
         return <span className="font-medium">{txn.clientName}</span>;
       case "amount":
         return formatCurrency(txn.amount, txn.currency);
-      case "gateway":
-        return (
-          <Chip size="sm" variant="flat" color="primary" className="rounded-full">
-            {txn.gateway}
-          </Chip>
-        );
       case "status":
         return <StatusChip kind="transaction" value={txn.status} />;
       case "date":
@@ -135,28 +107,18 @@ export function TransactionsTab({ transactions }: TransactionsTabProps) {
 
         <Table
           aria-label="Transactions table"
-          classNames={dataTableFillClassNames}
+          selectionMode="multiple"
+          selectedKeys={selected}
+          onSelectionChange={handleSelectionChange}
+          classNames={{
+            ...dataTableFillClassNames,
+            tr: "border-b border-default-100 last:border-b-0 hover:bg-default-50/80 data-[selected=true]:bg-primary/5",
+          }}
         >
           <TableHeader columns={headerColumns}>
-            {(column) =>
-              column.key === "select" ? (
-                <TableColumn key="select" width={48}>
-                  <TableSelectAll
-                    isSelected={allSelected}
-                    isIndeterminate={someSelected && !allSelected}
-                    onValueChange={(checked) => {
-                      setSelected(
-                        checked
-                          ? new Set(filtered.map((item) => item.id))
-                          : new Set(),
-                      );
-                    }}
-                  />
-                </TableColumn>
-              ) : (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
-              )
-            }
+            {(column) => (
+              <TableColumn key={column.key}>{column.label}</TableColumn>
+            )}
           </TableHeader>
           <TableBody
             items={filtered}

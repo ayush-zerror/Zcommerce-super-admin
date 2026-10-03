@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { CouponsTab } from "../components/billing/CouponsTab";
 import { PageHeader } from "../components/common/PageHeader";
+import { AutomationSettingsTab } from "../components/settings/AutomationSettingsTab";
 import { coupons as initialCoupons } from "../lib/mockData";
 import type { Coupon } from "../types";
 
@@ -11,6 +12,11 @@ const sections = {
   discounts: {
     title: "Discounts",
     description: "Create and review discount codes for client subscriptions.",
+  },
+  automation: {
+    title: "Automation",
+    description:
+      "Select stores nearing renewal and send expiry reminder emails.",
   },
 } as const;
 
@@ -43,25 +49,31 @@ export function Settings() {
           { label: meta.title },
         ]}
         actions={
-          <Button
-            color="primary"
-            radius="full"
-            size="sm"
-            className="h-8 px-5 font-medium"
-            startContent={<Plus size={14} strokeWidth={2.5} />}
-            onPress={() => setCreateOpen(true)}
-          >
-            Create discount
-          </Button>
+          active === "discounts" ? (
+            <Button
+              color="primary"
+              radius="full"
+              size="sm"
+              className="h-8 px-5 font-medium"
+              startContent={<Plus size={14} strokeWidth={2.5} />}
+              onPress={() => setCreateOpen(true)}
+            >
+              Create discount
+            </Button>
+          ) : undefined
         }
       />
 
-      <CouponsTab
-        coupons={coupons}
-        onCreate={(coupon) => setCoupons((prev) => [coupon, ...prev])}
-        createOpen={createOpen}
-        onCreateOpenChange={setCreateOpen}
-      />
+      {active === "discounts" ? (
+        <CouponsTab
+          coupons={coupons}
+          onCreate={(coupon) => setCoupons((prev) => [coupon, ...prev])}
+          createOpen={createOpen}
+          onCreateOpenChange={setCreateOpen}
+        />
+      ) : null}
+
+      {active === "automation" ? <AutomationSettingsTab /> : null}
     </div>
   );
 }

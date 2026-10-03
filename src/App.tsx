@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./components/auth/RequireAuth";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { Analytics } from "./pages/Analytics";
+import { AddClient } from "./pages/AddClient";
 import { Billing } from "./pages/Billing";
 import { ClientDetail } from "./pages/ClientDetail";
 import { Clients } from "./pages/Clients";
@@ -33,6 +34,7 @@ export default function App() {
         <Route element={<DashboardLayout />}>
           <Route index element={<Home />} />
           <Route path="clients" element={<Clients />} />
+          <Route path="clients/new" element={<AddClient />} />
           <Route path="clients/:id" element={<ClientDetail />} />
 
           <Route path="billing" element={<Navigate to="/billing/subscriptions" replace />} />
