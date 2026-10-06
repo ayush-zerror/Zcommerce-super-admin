@@ -23,7 +23,7 @@ export function DashboardLayout() {
       </div>
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        <div className="hidden h-full shrink-0 lg:block">
+        <div className="relative z-10 hidden h-full shrink-0 overflow-visible lg:block">
           <Sidebar
             collapsed={collapsed}
             onToggleCollapse={() => setCollapsed((prev) => !prev)}

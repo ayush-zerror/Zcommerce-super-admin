@@ -1,14 +1,15 @@
 import { useMemo } from "react";
 import { Navigate, useParams } from "react-router-dom";
-import { SubscriptionsTab } from "../components/billing/SubscriptionsTab";
+import { SubscriptionReportsTab } from "../components/billing/SubscriptionReportsTab";
 import { PageHeader } from "../components/common/PageHeader";
 import { TransactionsTab } from "../components/payments/TransactionsTab";
-import { subscriptions, transactions } from "../lib/mockData";
+import { transactions } from "../lib/mockData";
 
 const sections = {
   subscriptions: {
     title: "Subscriptions",
-    description: "Track renewals, past due, pending, and expiring subscriptions.",
+    description:
+      "Subscription health, payments, renewals, and shop status in one place.",
   },
   transactions: {
     title: "Transactions",
@@ -44,9 +45,7 @@ export function Billing() {
         ]}
       />
 
-      {active === "subscriptions" ? (
-        <SubscriptionsTab subscriptions={subscriptions} />
-      ) : null}
+      {active === "subscriptions" ? <SubscriptionReportsTab /> : null}
       {active === "transactions" ? (
         <TransactionsTab transactions={transactions} />
       ) : null}

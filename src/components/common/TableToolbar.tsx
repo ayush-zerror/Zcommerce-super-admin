@@ -13,6 +13,7 @@ import {
 } from "@heroui/react";
 import { ChevronDown, ListFilter, Search } from "lucide-react";
 import type { ReactNode } from "react";
+import { getInputClasses } from "../../styles/inputStyle";
 import { secondaryButtonClassName } from "./buttonStyles";
 
 export interface TableColumnOption {
@@ -49,13 +50,8 @@ export function TableToolbar({
         value={search}
         onValueChange={onSearchChange}
         startContent={<Search size={16} className="text-default-400" />}
-        radius="full"
         className="w-full sm:max-w-md"
-        classNames={{
-          inputWrapper:
-            "bg-white border border-default-200 shadow-none h-10 data-[hover=true]:bg-white",
-          input: "text-sm",
-        }}
+        classNames={getInputClasses("!rounded-full")}
       />
 
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -139,16 +135,19 @@ export function TableSelectAll({
   onValueChange,
 }: TableSelectAllProps) {
   return (
-    <input
-      type="checkbox"
+    <Checkbox
       aria-label="Select all"
-      checked={isSelected}
-      ref={(el) => {
-        if (el) el.indeterminate = !!isIndeterminate && !isSelected;
-      }}
-      onChange={(event) => onValueChange(event.target.checked)}
+      size="sm"
+      color="primary"
+      isSelected={isSelected}
+      isIndeterminate={!!isIndeterminate && !isSelected}
+      onValueChange={onValueChange}
       onClick={(event) => event.stopPropagation()}
-      className="h-4 w-4 cursor-pointer accent-[#3b82f6]"
+      classNames={{
+        wrapper:
+          "before:border-default-300 after:bg-primary rounded-[4px] before:rounded-[4px]",
+        icon: "text-white",
+      }}
     />
   );
 }
@@ -165,13 +164,18 @@ export function TableRowCheckbox({
   ariaLabel,
 }: TableRowCheckboxProps) {
   return (
-    <input
-      type="checkbox"
+    <Checkbox
       aria-label={ariaLabel}
-      checked={isSelected}
-      onChange={(event) => onValueChange(event.target.checked)}
+      size="sm"
+      color="primary"
+      isSelected={isSelected}
+      onValueChange={onValueChange}
       onClick={(event) => event.stopPropagation()}
-      className="h-4 w-4 cursor-pointer accent-[#3b82f6]"
+      classNames={{
+        wrapper:
+          "before:border-default-300 after:bg-primary rounded-[4px] before:rounded-[4px]",
+        icon: "text-white",
+      }}
     />
   );
 }

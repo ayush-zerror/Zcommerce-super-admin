@@ -33,6 +33,7 @@ function resolveColor(kind: StatusChipProps["kind"], value: string): ChipColor {
       success: "success",
       failed: "danger",
       refunded: "warning",
+      pending: "warning",
     };
     return map[value as TransactionStatus] ?? "default";
   }

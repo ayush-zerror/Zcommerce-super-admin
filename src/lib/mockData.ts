@@ -312,6 +312,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-10-12",
     mrr: 299,
     amountDue: 0,
+    startedAt: "2025-10-12",
   },
   {
     id: "sub-02",
@@ -322,6 +323,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-10-03",
     mrr: 99,
     amountDue: 0,
+    startedAt: "2025-10-03",
   },
   {
     id: "sub-03",
@@ -332,6 +334,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-09-30",
     mrr: 29,
     amountDue: 0,
+    startedAt: "2025-09-30",
   },
   {
     id: "sub-04",
@@ -342,6 +345,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-09-29",
     mrr: 99,
     amountDue: 99,
+    startedAt: "2025-09-29",
   },
   {
     id: "sub-05",
@@ -352,6 +356,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-10-10",
     mrr: 0,
     amountDue: 0,
+    startedAt: "2026-09-26",
   },
   {
     id: "sub-06",
@@ -362,6 +367,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-10-05",
     mrr: 299,
     amountDue: 0,
+    startedAt: "2025-10-05",
   },
   {
     id: "sub-07",
@@ -372,6 +378,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-09-28",
     mrr: 29,
     amountDue: 29,
+    startedAt: "2026-08-28",
   },
   {
     id: "sub-08",
@@ -382,6 +389,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-09-12",
     mrr: 0,
     amountDue: 99,
+    startedAt: "2025-09-12",
   },
   {
     id: "sub-09",
@@ -392,6 +400,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-10-02",
     mrr: 99,
     amountDue: 0,
+    startedAt: "2025-10-02",
   },
   {
     id: "sub-10",
@@ -402,6 +411,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-10-20",
     mrr: 29,
     amountDue: 0,
+    startedAt: "2026-10-01",
   },
   {
     id: "sub-11",
@@ -412,6 +422,8 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-09-01",
     mrr: 0,
     amountDue: 0,
+    startedAt: "2025-09-01",
+    canceledAt: "2026-10-02",
   },
   {
     id: "sub-12",
@@ -422,6 +434,7 @@ export const subscriptions: Subscription[] = [
     renewalDate: "2026-10-08",
     mrr: 0,
     amountDue: 0,
+    startedAt: "2026-09-24",
   },
 ];
 
@@ -434,7 +447,8 @@ export const transactions: Transaction[] = [
     currency: "INR",
     gateway: "Stripe",
     status: "success",
-    date: "2026-03-12T10:00:00Z",
+    date: "2026-10-02T10:00:00Z",
+    dueDate: "2026-10-01",
     transactionId: "ch_3PqR8a2eZvKYlo2C",
   },
   {
@@ -444,8 +458,9 @@ export const transactions: Transaction[] = [
     amount: 99,
     currency: "INR",
     gateway: "Stripe",
-    status: "success",
-    date: "2026-03-22T14:22:00Z",
+    status: "pending",
+    date: "2026-10-01T14:22:00Z",
+    dueDate: "2026-09-29",
     transactionId: "ch_3PqT9b2eZvKYlo2D",
   },
   {
@@ -456,7 +471,8 @@ export const transactions: Transaction[] = [
     currency: "INR",
     gateway: "Razorpay",
     status: "success",
-    date: "2026-03-05T08:40:00Z",
+    date: "2026-10-03T08:40:00Z",
+    dueDate: "2026-10-03",
     transactionId: "pay_N8xK2mQpL9aR",
   },
   {
@@ -467,7 +483,8 @@ export const transactions: Transaction[] = [
     currency: "INR",
     gateway: "Stripe",
     status: "failed",
-    date: "2026-03-12T09:05:00Z",
+    date: "2026-10-01T09:05:00Z",
+    dueDate: "2026-09-12",
     transactionId: "ch_3PqFail2eZvKY",
   },
   {
@@ -478,7 +495,8 @@ export const transactions: Transaction[] = [
     currency: "INR",
     gateway: "Stripe",
     status: "success",
-    date: "2026-03-03T11:15:00Z",
+    date: "2026-10-01T11:15:00Z",
+    dueDate: "2026-10-01",
     transactionId: "ch_3PqU1c2eZvKYlo2E",
   },
   {
@@ -489,7 +507,8 @@ export const transactions: Transaction[] = [
     currency: "INR",
     gateway: "Stripe",
     status: "refunded",
-    date: "2026-03-18T16:50:00Z",
+    date: "2026-09-18T16:50:00Z",
+    dueDate: "2026-09-15",
     transactionId: "ch_3PqRef2eZvKY",
   },
   {
@@ -500,7 +519,8 @@ export const transactions: Transaction[] = [
     currency: "INR",
     gateway: "Razorpay",
     status: "success",
-    date: "2026-03-20T07:30:00Z",
+    date: "2026-10-01T07:30:00Z",
+    dueDate: "2026-10-01",
     transactionId: "pay_M3nL8vRtK2bQ",
   },
   {
@@ -511,8 +531,21 @@ export const transactions: Transaction[] = [
     currency: "INR",
     gateway: "Stripe",
     status: "success",
-    date: "2026-03-18T09:10:00Z",
+    date: "2026-09-18T09:10:00Z",
+    dueDate: "2026-09-18",
     transactionId: "ch_3PqV2d2eZvKYlo2F",
+  },
+  {
+    id: "txn-09",
+    clientId: "cli-06",
+    clientName: "Canvas & Clay",
+    amount: 0,
+    currency: "INR",
+    gateway: "Stripe",
+    status: "success",
+    date: "2026-10-04T12:00:00Z",
+    dueDate: "2026-10-04",
+    transactionId: "ch_3PqOct2eZvKY",
   },
 ];
 

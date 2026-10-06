@@ -6,7 +6,8 @@ import { PageHeader } from "../components/common/PageHeader";
 const sections = {
   revenue: {
     title: "Revenue Reports",
-    description: "Subscription revenue breakdown by plan over time.",
+    description:
+      "Plan bookings, collection health, gateway mix, and top contributing stores.",
   },
 } as const;
 

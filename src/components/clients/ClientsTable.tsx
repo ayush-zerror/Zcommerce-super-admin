@@ -9,7 +9,6 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-  type Selection,
   type SortDescriptor,
 } from "@heroui/react";
 import { LogIn } from "lucide-react";
@@ -18,7 +17,6 @@ import { useNavigate } from "react-router-dom";
 import type { Client, Subscription } from "../../types";
 import { subscriptions } from "../../lib/mockData";
 import { getStoreHealth } from "../../lib/storeHealth";
-import { selectionToIdSet } from "../../lib/tableSelection";
 import {
   daysUntil,
   formatDate,
@@ -121,7 +119,6 @@ export function ClientsTable({
 }: ClientsTableProps) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: "storeName",
     direction: "ascending",
@@ -149,7 +146,6 @@ export function ClientsTable({
 
   useEffect(() => {
     setPage(1);
-    setSelected(new Set());
   }, [clients]);
 
   const sorted = useMemo(() => {
@@ -167,18 +163,6 @@ export function ClientsTable({
     const start = (safePage - 1) * PAGE_SIZE;
     return sorted.slice(start, start + PAGE_SIZE);
   }, [safePage, sorted]);
-
-  const handleSelectionChange = (keys: Selection) => {
-    const pageIds = pageItems.map((item) => item.id);
-    const pageSelected = selectionToIdSet(keys, pageIds);
-    setSelected((prev) => {
-      const next = new Set(
-        Array.from(prev).filter((id) => !pageIds.includes(id)),
-      );
-      pageSelected.forEach((id) => next.add(id));
-      return next;
-    });
-  };
 
   if (isLoading) {
     return (
@@ -256,18 +240,12 @@ export function ClientsTable({
     <div>
       <Table
         aria-label="Clients table"
-        selectionMode="multiple"
-        selectedKeys={selected}
-        onSelectionChange={handleSelectionChange}
         sortDescriptor={sortDescriptor}
         onSortChange={(descriptor) => {
           setSortDescriptor(descriptor);
           setPage(1);
         }}
-        classNames={{
-          ...dataTableClassNames,
-          tr: "border-b border-default-100 last:border-b-0 hover:bg-default-50/80 data-[selected=true]:bg-primary/5",
-        }}
+        classNames={dataTableClassNames}
       >
         <TableHeader columns={headerColumns}>
           {(column) =>

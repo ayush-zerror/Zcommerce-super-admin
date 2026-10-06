@@ -5,9 +5,12 @@
 
 @theme {
   --color-navbar: #0b1220;
+  --color-textStandardPrimary: #0b1220;
+  --color-grayBackground: #fafafa;
   --color-sidebar: #ffffff;
   --color-content: #f3f4f6;
   --color-accent-soft: #e8f0fe;
+  --color-lightPrimary: #e5f5ff;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 

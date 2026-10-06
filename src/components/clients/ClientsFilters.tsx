@@ -1,6 +1,7 @@
 import { Input, Select, SelectItem } from "@heroui/react";
 import { Search } from "lucide-react";
 import type { ClientStatus, PlanName } from "../../types";
+import { getInputClasses } from "../../styles/inputStyle";
 
 export type PlanFilter = PlanName | "all";
 export type StatusFilter = ClientStatus | "all";
@@ -45,11 +46,8 @@ export function ClientsFilters({
         value={search}
         onValueChange={onSearchChange}
         startContent={<Search size={16} className="text-default-400" />}
-        radius="lg"
         className="w-full sm:max-w-sm"
-        classNames={{
-          inputWrapper: "bg-default-100 shadow-none",
-        }}
+        classNames={getInputClasses("!rounded-full")}
       />
       <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:justify-end">
         <Select

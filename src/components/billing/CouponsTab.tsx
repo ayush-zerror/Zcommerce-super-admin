@@ -25,7 +25,7 @@ import { useMemo, useState } from "react";
 import type { Coupon, PlanName } from "../../types";
 import { selectionToIdSet } from "../../lib/tableSelection";
 import { formatDate } from "../../lib/utils";
-import { dataTableFillClassNames, tablePanelFillClassName } from "../common/dataTableStyles";
+import { dataTableFillClassNames, dataTableSelectionProps, tablePanelFillClassName } from "../common/dataTableStyles";
 import {
   FilterCheckboxGroup,
   TableToolbar,
@@ -204,13 +204,10 @@ export function CouponsTab({
           />
           <Table
             aria-label="Discounts table"
-            selectionMode="multiple"
+            {...dataTableSelectionProps}
             selectedKeys={selected}
             onSelectionChange={handleSelectionChange}
-            classNames={{
-              ...dataTableFillClassNames,
-              tr: "border-b border-default-100 last:border-b-0 hover:bg-default-50/80 data-[selected=true]:bg-primary/5",
-            }}
+            classNames={dataTableFillClassNames}
           >
             <TableHeader columns={headerColumns}>
               {(column) => (

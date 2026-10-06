@@ -34,11 +34,6 @@ export function StoreHealthCell({ client, subscription }: StoreHealthCellProps) 
             indicator: "rounded-full",
           }}
         />
-        {health.summary ? (
-          <p className="truncate text-[11px] leading-tight text-default-400">
-            {health.summary}
-          </p>
-        ) : null}
       </div>
     </Tooltip>
   );

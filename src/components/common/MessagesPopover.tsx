@@ -1,21 +1,19 @@
 import {
-  Badge,
+  Avatar,
   Button,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Tab,
-  Tabs,
+  Chip,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownSection,
+  DropdownTrigger,
 } from "@heroui/react";
-import { CreditCard, Headphones, Mail, ShieldAlert } from "lucide-react";
 import { useMemo, useState } from "react";
-import { formatDateTime } from "../../lib/utils";
-
-type MessageCategory = "All" | "Support" | "Billing" | "Alerts";
+import { FaEnvelope } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
 
 interface MessageItem {
   id: string;
-  category: Exclude<MessageCategory, "All">;
   from: string;
   preview: string;
   timestamp: string;
@@ -26,7 +24,6 @@ interface MessageItem {
 const initialMessages: MessageItem[] = [
   {
     id: "msg-1",
-    category: "Support",
     from: "Anika Patel",
     preview: "Can you review the Orbit Gadgets suspension notes?",
     timestamp: "2026-03-28T07:40:00Z",
@@ -35,7 +32,6 @@ const initialMessages: MessageItem[] = [
   },
   {
     id: "msg-2",
-    category: "Billing",
     from: "Marcus Reed",
     preview: "March payout report is ready for approval.",
     timestamp: "2026-03-28T05:15:00Z",
@@ -44,7 +40,6 @@ const initialMessages: MessageItem[] = [
   },
   {
     id: "msg-3",
-    category: "Alerts",
     from: "System",
     preview: "Failed payment retry scheduled for Orbit Gadgets.",
     timestamp: "2026-03-27T18:00:00Z",
@@ -53,7 +48,6 @@ const initialMessages: MessageItem[] = [
   },
   {
     id: "msg-4",
-    category: "Support",
     from: "Lena Ortiz",
     preview: "TrailForge Gear asked about upgrading before trial ends.",
     timestamp: "2026-03-26T11:20:00Z",
@@ -62,7 +56,6 @@ const initialMessages: MessageItem[] = [
   },
   {
     id: "msg-5",
-    category: "Billing",
     from: "Marcus Reed",
     preview: "Coupon PRO50OFF is nearing max redemptions.",
     timestamp: "2026-03-25T09:10:00Z",
@@ -71,31 +64,31 @@ const initialMessages: MessageItem[] = [
   },
 ];
 
-function categoryIcon(category: MessageItem["category"]) {
-  switch (category) {
-    case "Support":
-      return <Headphones size={16} />;
-    case "Billing":
-      return <CreditCard size={16} />;
-    case "Alerts":
-      return <ShieldAlert size={16} />;
-    default:
-      return <Mail size={16} />;
-  }
+function formatTime(iso: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  })
+    .format(new Date(iso))
+    .toLowerCase()
+    .replace(" ", "");
 }
 
 export function MessagesPopover() {
   const [items, setItems] = useState<MessageItem[]>(initialMessages);
-  const [filter, setFilter] = useState<MessageCategory>("All");
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [isOpen, setIsOpen] = useState(false);
 
-  const unreadCount = items.filter((m) => !m.read).length;
+  const unreadCount = useMemo(
+    () => items.filter((m) => !m.read).length,
+    [items],
+  );
 
-  const filtered = useMemo(() => {
-    if (filter === "All") return items;
-    return items.filter((m) => m.category === filter);
-  }, [filter, items]);
+  const filteredGroups = useMemo(() => {
+    const filtered =
+      filter === "all" ? items : items.filter((item) => !item.read);
 
-  const groups = useMemo(() => {
     const map = new Map<string, MessageItem[]>();
     for (const item of filtered) {
       const list = map.get(item.dateGroup) ?? [];
@@ -103,114 +96,161 @@ export function MessagesPopover() {
       map.set(item.dateGroup, list);
     }
     return Array.from(map.entries());
-  }, [filtered]);
+  }, [filter, items]);
+
+  const chipClass = (active: boolean) =>
+    active
+      ? "bg-blue-50 text-primary cursor-pointer"
+      : "border border-gray-200 text-gray-700 bg-transparent cursor-pointer";
 
   const markAllRead = () => {
     setItems((prev) => prev.map((m) => ({ ...m, read: true })));
   };
 
   return (
-    <Popover placement="bottom-end" offset={12}>
-      <Badge
-        color="primary"
-        content={unreadCount}
-        isInvisible={unreadCount === 0}
-        shape="circle"
-        size="md"
-        placement="top-right"
-        classNames={{
-          base: "border-none",
-          badge:
-            "border-2 border-navbar min-w-5 h-5 text-[11px] font-bold px-1",
-        }}
-      >
-        <PopoverTrigger>
-          <Button
-            isIconOnly
-            radius="sm"
-            variant="flat"
-            aria-label="Messages"
-            className="h-9 w-9 min-w-9 bg-[#3a3a3a] text-white data-[hover=true]:bg-[#4a4a4a]"
-          >
-            <Mail size={18} fill="currentColor" strokeWidth={0} />
-          </Button>
-        </PopoverTrigger>
-      </Badge>
-      <PopoverContent className="w-[360px] p-0 sm:w-[400px]">
-        <div className="flex w-full flex-col">
-          <div className="flex items-center justify-between border-b border-default-100 px-4 py-3">
-            <h3 className="text-base font-semibold">Messages</h3>
-            <Button size="sm" variant="light" color="primary" onPress={markAllRead}>
-              Mark as read
-            </Button>
-          </div>
+    <Dropdown
+      placement="bottom-end"
+      showArrow
+      offset={14}
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+    >
+      <DropdownTrigger>
+        <Button
+          isIconOnly
+          radius="sm"
+          variant="flat"
+          aria-label="Messages"
+          className="relative h-9 w-9 min-w-9 overflow-visible bg-[#3a3a3a] text-white data-[hover=true]:bg-[#4a4a4a]"
+        >
+          <FaEnvelope className="text-lg" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-tiny text-white">
+              {unreadCount}
+            </span>
+          )}
+        </Button>
+      </DropdownTrigger>
 
-          <div className="px-3 pt-3">
-            <Tabs
-              aria-label="Message filters"
-              selectedKey={filter}
-              onSelectionChange={(key) => setFilter(key as MessageCategory)}
-              size="sm"
-              variant="light"
+      <DropdownMenu
+        aria-label="Messages"
+        closeOnSelect={false}
+        className="w-[380px] max-h-[820px] overflow-y-auto p-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        topContent={
+          <div className="p-4">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+              <p className="text-sm font-semibold text-[#131720]">Message</p>
+              <button type="button" onClick={() => setIsOpen(false)} aria-label="Close">
+                <IoClose className="cursor-pointer text-lg text-[#868AA5]" />
+              </button>
+            </div>
+
+            <div className="mt-3 flex gap-2">
+              <Chip
+                size="sm"
+                radius="sm"
+                className={chipClass(filter === "all")}
+                onClick={() => setFilter("all")}
+                classNames={{
+                  content: "flex items-center gap-1 cursor-pointer",
+                }}
+              >
+                All
+              </Chip>
+
+              <Chip
+                size="sm"
+                radius="sm"
+                className={chipClass(filter === "unread")}
+                onClick={() => setFilter("unread")}
+                classNames={{
+                  content: "flex items-center gap-1 cursor-pointer",
+                }}
+              >
+                Unread
+                {unreadCount > 0 && (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[0.6rem] text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </Chip>
+            </div>
+
+            <div className="mt-2 flex w-full justify-end">
+              <button
+                type="button"
+                className="text-xs text-primary"
+                onClick={markAllRead}
+              >
+                Mark as read
+              </button>
+            </div>
+          </div>
+        }
+      >
+        {filteredGroups.length === 0 ? (
+          <DropdownItem key="empty" className="cursor-default" isReadOnly>
+            <p className="py-6 text-center text-sm text-[#868AA5]">No messages</p>
+          </DropdownItem>
+        ) : (
+          filteredGroups.map(([dateGroup, groupItems]) => (
+            <DropdownSection
+              key={dateGroup}
+              title={dateGroup}
               classNames={{
-                tabList: "gap-1",
-                cursor: "bg-primary/15",
-                tab: "px-3 h-8",
+                heading:
+                  "px-4 py-2 text-xs font-semibold text-black cursor-default",
               }}
             >
-              <Tab key="All" title="All" />
-              <Tab
-                key="Support"
-                title={`Support (${items.filter((m) => m.category === "Support" && !m.read).length})`}
-              />
-              <Tab key="Billing" title="Billing" />
-              <Tab key="Alerts" title="Alerts" />
-            </Tabs>
-          </div>
+              {groupItems.map((item) => (
+                <DropdownItem
+                  key={item.id}
+                  className="rounded-none border-b border-gray-200 px-4 py-4"
+                  classNames={{
+                    base: "data-[hover=true]:bg-[#E6F3FE]",
+                  }}
+                  textValue={item.from}
+                >
+                  <div className="flex gap-3">
+                    <Avatar
+                      size="sm"
+                      name={item.from}
+                      classNames={{
+                        base: "h-7 w-7 opacity-70",
+                        name: "text-[10px]",
+                      }}
+                    />
 
-          <div className="custom-scroll max-h-[360px] overflow-y-auto px-2 py-3">
-            {groups.length === 0 ? (
-              <p className="px-3 py-8 text-center text-sm text-default-400">
-                No messages
-              </p>
-            ) : (
-              groups.map(([group, groupItems]) => (
-                <div key={group} className="mb-3">
-                  <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-default-400">
-                    {group}
-                  </p>
-                  <ul className="space-y-1">
-                    {groupItems.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex gap-3 rounded-xl px-3 py-2.5 hover:bg-default-100"
-                      >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-default-100 text-default-600">
-                          {categoryIcon(item.category)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold">{item.from}</span>
-                            {!item.read ? (
-                              <span className="h-2 w-2 rounded-full bg-primary" />
-                            ) : null}
-                            <span className="ml-auto shrink-0 text-[11px] text-default-400">
-                              {formatDateTime(item.timestamp)}
-                            </span>
-                          </div>
-                          <p className="truncate text-xs text-default-500">
-                            {item.preview}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-[#131720]">
+                            {item.from}
                           </p>
+                          {!item.read && (
+                            <span className="h-2 w-2 rounded-full bg-primary" />
+                          )}
                         </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+                        <span className="shrink-0 text-xs text-[#868AA5]">
+                          {formatTime(item.timestamp)}
+                        </span>
+                      </div>
+
+                      <p
+                        className={`mt-0.5 line-clamp-2 text-xs ${
+                          !item.read ? "text-black" : "text-[#44485F]"
+                        }`}
+                      >
+                        {item.preview}
+                      </p>
+                    </div>
+                  </div>
+                </DropdownItem>
+              ))}
+            </DropdownSection>
+          ))
+        )}
+      </DropdownMenu>
+    </Dropdown>
   );
 }

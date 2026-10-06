@@ -7,11 +7,10 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-  type Selection,
 } from "@heroui/react";
 import { useMemo, useState } from "react";
 import type { Transaction, TransactionStatus } from "../../types";
-import { selectionToIdSet } from "../../lib/tableSelection";
+import { clients } from "../../lib/mockData";
 import { formatCurrency, formatDateTime } from "../../lib/utils";
 import { dataTableFillClassNames, tablePanelFillClassName } from "../common/dataTableStyles";
 import { StatusChip } from "../common/StatusChip";
@@ -26,7 +25,8 @@ export interface TransactionsTabProps {
 }
 
 const columnOptions = [
-  { key: "clientName", label: "Client" },
+  { key: "clientName", label: "Store" },
+  { key: "plan", label: "Plan" },
   { key: "amount", label: "Amount" },
   { key: "status", label: "Status" },
   { key: "date", label: "Date" },
@@ -39,32 +39,50 @@ export function TransactionsTab({ transactions }: TransactionsTabProps) {
   const [visibleColumns, setVisibleColumns] = useState(
     columnOptions.map((c) => c.key),
   );
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const clientById = useMemo(
+    () => new Map(clients.map((c) => [c.id, c])),
+    [],
+  );
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
     return transactions.filter((txn) => {
+      const client = clientById.get(txn.clientId);
+      const email = client?.ownerEmail ?? "";
+      const plan = client?.plan ?? "";
       const matchesSearch =
         !query ||
         txn.clientName.toLowerCase().includes(query) ||
+        email.toLowerCase().includes(query) ||
+        plan.toLowerCase().includes(query) ||
         txn.transactionId.toLowerCase().includes(query);
       const matchesStatus =
         statuses.length === 0 || statuses.includes(txn.status);
       return matchesSearch && matchesStatus;
     });
-  }, [search, statuses, transactions]);
+  }, [search, statuses, transactions, clientById]);
 
-  const dataColumns = columnOptions.filter((c) => visibleColumns.includes(c.key));
-  const headerColumns = dataColumns;
-
-  const handleSelectionChange = (keys: Selection) => {
-    setSelected(selectionToIdSet(keys, filtered.map((item) => item.id)));
-  };
+  const headerColumns = columnOptions.filter((c) => visibleColumns.includes(c.key));
 
   const renderCell = (txn: Transaction, key: string) => {
+    const client = clientById.get(txn.clientId);
     switch (key) {
       case "clientName":
-        return <span className="font-medium">{txn.clientName}</span>;
+        return (
+          <div className="min-w-0">
+            <p className="truncate font-medium whitespace-nowrap">{txn.clientName}</p>
+            <p className="truncate text-xs text-default-400">
+              {client?.ownerEmail ?? "—"}
+            </p>
+          </div>
+        );
+      case "plan":
+        return client?.plan ? (
+          <StatusChip kind="plan" value={client.plan} />
+        ) : (
+          <span className="text-default-400">—</span>
+        );
       case "amount":
         return formatCurrency(txn.amount, txn.currency);
       case "status":
@@ -93,7 +111,7 @@ export function TransactionsTab({ transactions }: TransactionsTabProps) {
           filterContent={
             <FilterCheckboxGroup
               label="Status"
-              options={(["success", "failed", "refunded"] as TransactionStatus[]).map(
+              options={(["success", "failed", "refunded", "pending"] as TransactionStatus[]).map(
                 (status) => ({
                   key: status,
                   label: status.charAt(0).toUpperCase() + status.slice(1),
@@ -107,13 +125,7 @@ export function TransactionsTab({ transactions }: TransactionsTabProps) {
 
         <Table
           aria-label="Transactions table"
-          selectionMode="multiple"
-          selectedKeys={selected}
-          onSelectionChange={handleSelectionChange}
-          classNames={{
-            ...dataTableFillClassNames,
-            tr: "border-b border-default-100 last:border-b-0 hover:bg-default-50/80 data-[selected=true]:bg-primary/5",
-          }}
+          classNames={dataTableFillClassNames}
         >
           <TableHeader columns={headerColumns}>
             {(column) => (

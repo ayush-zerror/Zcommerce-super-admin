@@ -10,7 +10,7 @@ export type UserRole =
 
 export type UserStatus = "active" | "invited" | "disabled";
 
-export type TransactionStatus = "success" | "failed" | "refunded";
+export type TransactionStatus = "success" | "failed" | "refunded" | "pending";
 
 export type PaymentGateway = "Stripe" | "Razorpay";
 
@@ -20,6 +20,8 @@ export type SubscriptionStatus =
   | "canceled"
   | "trialing"
   | "pending";
+
+export type SubscriptionHealthBucket = "healthy" | "at_risk" | "unhealthy";
 
 export type ActivityType =
   | "signup"
@@ -64,6 +66,8 @@ export interface Client {
     bandwidthGb: number;
   };
   notes: string;
+  /** Per-store override; falls back to platform default when unset. */
+  gracePeriodDays?: number;
 }
 
 export interface Subscription {
@@ -75,6 +79,8 @@ export interface Subscription {
   renewalDate: string;
   mrr: number;
   amountDue: number;
+  startedAt?: string;
+  canceledAt?: string;
 }
 
 export interface Transaction {
@@ -86,6 +92,7 @@ export interface Transaction {
   gateway: PaymentGateway;
   status: TransactionStatus;
   date: string;
+  dueDate?: string;
   transactionId: string;
 }
 
@@ -169,4 +176,19 @@ export interface DashboardStats {
   mrrChange: number;
   totalOrders: number;
   totalOrdersChange: number;
+}
+
+export interface PlatformSettings {
+  health: {
+    expiringWithinDays: number;
+    inactiveAfterDays: number;
+  };
+  gracePeriodDays: number;
+  reminders: {
+    daysBeforeDue: number[];
+    daysAfterDue: number[];
+    email: boolean;
+    sms: boolean;
+    whatsapp: boolean;
+  };
 }

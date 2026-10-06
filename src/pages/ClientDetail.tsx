@@ -10,15 +10,17 @@ import { ConfirmModal } from "../components/common/ConfirmModal";
 import { PageHeader } from "../components/common/PageHeader";
 import { StatusChip } from "../components/common/StatusChip";
 import { plans, subscriptions, transactions } from "../lib/mockData";
+import { loadPlatformSettings } from "../lib/platformSettings";
 import { useClients } from "../providers/ClientsProvider";
 
 export function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getClient, setClientStatus, deleteClient } = useClients();
+  const { getClient, updateClient, setClientStatus, deleteClient } = useClients();
   const [loginOpen, setLoginOpen] = useState(false);
 
   const client = id ? getClient(id) : undefined;
+  const defaultGracePeriodDays = loadPlatformSettings().gracePeriodDays;
 
   const plan = useMemo(
     () => (client ? plans.find((p) => p.name === client.plan) : undefined),
@@ -93,7 +95,14 @@ export function ClientDetail() {
 
       <div className="space-y-6">
         <ClientOverviewTab client={client} subscription={subscription} />
-        <ClientBillingTab transactions={clientTransactions} />
+        <ClientBillingTab
+          client={client}
+          transactions={clientTransactions}
+          defaultGracePeriodDays={defaultGracePeriodDays}
+          onSaveGracePeriod={(days) =>
+            updateClient(client.id, { gracePeriodDays: days })
+          }
+        />
         <ClientUsageTab client={client} plan={plan} />
         <ClientDangerZone
           client={client}

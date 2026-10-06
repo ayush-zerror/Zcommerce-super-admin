@@ -1,9 +1,17 @@
-import { Navbar, NavbarBrand } from "@heroui/react";
-import { Button, Input } from "@heroui/react";
-import { Menu, Search } from "lucide-react";
+import {
+  Button,
+  Chip,
+  Input,
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+} from "@heroui/react";
+import { BiMenu, BiSearch } from "react-icons/bi";
 import { MessagesPopover } from "../common/MessagesPopover";
 import { NotificationsPopover } from "../common/NotificationsPopover";
 import { ProfileDropdown } from "../common/ProfileDropdown";
+import { currentAdmin } from "../../lib/mockData";
+import { getDarkSearchInputClasses } from "../../styles/inputStyle";
 
 export interface TopbarProps {
   onOpenMobileNav?: () => void;
@@ -16,60 +24,71 @@ export function Topbar({ onOpenMobileNav, variant = "default" }: TopbarProps) {
 
   return (
     <Navbar
+      isBordered={false}
+      height={50}
       maxWidth="full"
-      height="3.5rem"
+      className="w-full"
       classNames={{
-        base: "bg-navbar text-white shadow-sm",
-        wrapper: "relative px-3 sm:px-5",
+        base: "bg-textStandardPrimary dark:bg-slate-900",
+        wrapper:
+          "relative max-w-full px-3 sm:px-5 z-100 dark:text-white sticky top-0 left-0 overflow-visible",
       }}
     >
-      <NavbarBrand className="z-10 gap-2 max-w-fit">
+      <NavbarContent justify="start" className="z-10 max-w-fit gap-2 basis-auto flex-grow-0">
         {!isAuth && onOpenMobileNav ? (
           <Button
             isIconOnly
-            radius="sm"
-            variant="flat"
-            className="h-9 w-9 min-w-9 bg-[#3a3a3a] text-white data-[hover=true]:bg-[#4a4a4a] lg:hidden"
-            aria-label="Open menu"
+            aria-label="Menu"
+            variant="light"
+            className="lg:hidden text-white"
             onPress={onOpenMobileNav}
           >
-            <Menu size={18} />
+            <BiMenu size={24} />
           </Button>
         ) : null}
-        <div className="flex flex-col leading-tight">
-          <span className="text-sm font-extrabold tracking-[0.14em] sm:text-base">
-            ZCOMMERCE
-          </span>
-          <span className="hidden text-[11px] font-medium text-white/70 sm:block">
-            Super admin panel
-          </span>
-        </div>
-      </NavbarBrand>
+        <NavbarBrand className="max-w-fit items-center gap-2">
+          <p className="text-xl font-bold text-inherit text-white">ZCOMMERCE</p>
+          <Chip
+            size="sm"
+            variant="flat"
+            className="h-5 min-h-5 bg-primary/20 px-2 text-[10px] font-semibold uppercase tracking-wide text-primary"
+            classNames={{
+              content: "px-0",
+            }}
+          >
+            {currentAdmin.role}
+          </Chip>
+        </NavbarBrand>
+      </NavbarContent>
 
       {!isAuth ? (
         <>
-          <div className="pointer-events-none absolute inset-x-0 hidden justify-center sm:flex">
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 z-[1] hidden -translate-y-1/2 justify-center lg:flex">
             <div className="pointer-events-auto w-full max-w-xl px-4">
               <Input
-                aria-label="Global search"
                 placeholder="Search for tools, apps, help & more..."
-                radius="full"
                 size="sm"
-                startContent={<Search size={16} className="text-white/45" />}
+                type="search"
+                aria-label="search"
+                radius="full"
+                startContent={<BiSearch size={18} className="text-white/45" />}
                 classNames={{
-                  inputWrapper:
-                    "bg-[#3a3a3a] shadow-none h-9 border-none data-[hover=true]:bg-[#454545] group-data-[focus=true]:bg-[#454545]",
-                  input: "text-sm text-white/90 placeholder:text-white/45",
+                  ...getDarkSearchInputClasses(),
+                  base: "w-full",
                 }}
               />
             </div>
           </div>
 
-          <div className="z-10 ml-auto flex items-center gap-2">
+          <NavbarContent
+            as="div"
+            className="z-10 ml-auto max-w-fit basis-auto flex-grow-0 items-center gap-2 sm:gap-5"
+            justify="end"
+          >
             <NotificationsPopover />
             <MessagesPopover />
             <ProfileDropdown />
-          </div>
+          </NavbarContent>
         </>
       ) : null}
     </Navbar>

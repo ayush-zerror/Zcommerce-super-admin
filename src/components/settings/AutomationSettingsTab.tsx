@@ -26,7 +26,7 @@ import { selectionToIdSet } from "../../lib/tableSelection";
 import { daysUntil, formatDate } from "../../lib/utils";
 import { useClients } from "../../providers/ClientsProvider";
 import { secondaryButtonClassName } from "../common/buttonStyles";
-import { dataTableClassNames, tablePanelClassName } from "../common/dataTableStyles";
+import { dataTableClassNames, dataTableSelectionProps, tablePanelClassName } from "../common/dataTableStyles";
 import { NoDataPlaceholder } from "../common/NoDataPlaceholder";
 import { StatusChip } from "../common/StatusChip";
 import { TableToolbar } from "../common/TableToolbar";
@@ -253,13 +253,10 @@ export function AutomationSettingsTab() {
 
           <Table
             aria-label="Stores for expiry emails"
-            selectionMode="multiple"
+            {...dataTableSelectionProps}
             selectedKeys={selected}
             onSelectionChange={handleSelectionChange}
-            classNames={{
-              ...dataTableClassNames,
-              tr: "border-b border-default-100 last:border-b-0 hover:bg-default-50/80 data-[selected=true]:bg-primary/5",
-            }}
+            classNames={dataTableClassNames}
           >
             <TableHeader columns={[...columns]}>
               {(column) => (
