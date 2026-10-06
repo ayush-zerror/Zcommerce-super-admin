@@ -25,7 +25,13 @@ import { useMemo, useState } from "react";
 import type { Coupon, PlanName } from "../../types";
 import { selectionToIdSet } from "../../lib/tableSelection";
 import { formatDate } from "../../lib/utils";
+import { getInputClasses, getSelectClasses } from "../../styles/inputStyle";
+import {
+  modalCancelButtonClassName,
+  modalPrimaryButtonClassName,
+} from "../common/buttonStyles";
 import { dataTableFillClassNames, dataTableSelectionProps, tablePanelFillClassName } from "../common/dataTableStyles";
+import { dashboardModalProps } from "../common/modalStyles";
 import {
   FilterCheckboxGroup,
   TableToolbar,
@@ -243,60 +249,79 @@ export function CouponsTab({
           onCreateOpenChange(false);
           resetForm();
         }}
-        placement="center"
-        size="lg"
+        size="2xl"
+        {...dashboardModalProps}
       >
         <ModalContent>
           {(close) => (
             <>
               <ModalHeader>Create discount</ModalHeader>
-              <ModalBody className="gap-3">
-                <Input label="Code" value={code} onValueChange={setCode} placeholder="SAVE20" />
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <ModalBody>
+                <Input
+                  label="Code"
+                  labelPlacement="outside"
+                  placeholder="SAVE20"
+                  value={code}
+                  onValueChange={setCode}
+                  classNames={getInputClasses()}
+                />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Select
                     label="Discount type"
+                    labelPlacement="outside"
                     selectedKeys={new Set([discountType])}
                     onSelectionChange={(keys) => {
                       const value = Array.from(keys)[0];
                       if (value === "percent" || value === "fixed") setDiscountType(value);
                     }}
                     disallowEmptySelection
+                    classNames={getSelectClasses()}
                   >
                     <SelectItem key="percent">Percent</SelectItem>
                     <SelectItem key="fixed">Fixed (₹)</SelectItem>
                   </Select>
                   <Input
                     label="Discount value"
+                    labelPlacement="outside"
+                    placeholder="0"
                     type="number"
                     value={discountValue}
                     onValueChange={setDiscountValue}
+                    classNames={getInputClasses()}
                   />
                 </div>
                 <Select
                   label="Applies to"
+                  labelPlacement="outside"
                   selectedKeys={new Set([appliesTo])}
                   onSelectionChange={(keys) => {
                     const value = Array.from(keys)[0];
                     if (typeof value === "string") setAppliesTo(value as PlanName | "All");
                   }}
                   disallowEmptySelection
+                  classNames={getSelectClasses()}
                 >
                   {planOptions.map((option) => (
                     <SelectItem key={option}>{option}</SelectItem>
                   ))}
                 </Select>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Input
                     label="Max redemptions"
+                    labelPlacement="outside"
+                    placeholder="100"
                     type="number"
                     value={maxRedemptions}
                     onValueChange={setMaxRedemptions}
+                    classNames={getInputClasses()}
                   />
                   <Input
                     label="Expires at"
+                    labelPlacement="outside"
                     type="date"
                     value={expiresAt}
                     onValueChange={setExpiresAt}
+                    classNames={getInputClasses()}
                   />
                 </div>
                 <Switch isSelected={active} onValueChange={setActive}>
@@ -304,11 +329,21 @@ export function CouponsTab({
                 </Switch>
               </ModalBody>
               <ModalFooter>
-                <Button variant="light" onPress={close}>
+                <Button
+                  variant="bordered"
+                  radius="full"
+                  className={modalCancelButtonClassName}
+                  onPress={close}
+                >
                   Cancel
                 </Button>
-                <Button color="primary" onPress={handleCreate}>
-                  Create
+                <Button
+                  color="primary"
+                  radius="full"
+                  className={modalPrimaryButtonClassName}
+                  onPress={handleCreate}
+                >
+                  Save
                 </Button>
               </ModalFooter>
             </>

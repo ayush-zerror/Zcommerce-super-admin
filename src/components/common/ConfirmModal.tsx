@@ -6,6 +6,11 @@ import {
   ModalFooter,
   ModalHeader,
 } from "@heroui/react";
+import {
+  modalCancelButtonClassName,
+  modalPrimaryButtonClassName,
+} from "./buttonStyles";
+import { dashboardModalProps } from "./modalStyles";
 
 export interface ConfirmModalProps {
   isOpen: boolean;
@@ -31,20 +36,34 @@ export function ConfirmModal({
   isLoading = false,
 }: ConfirmModalProps) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} placement="center">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="md"
+      {...dashboardModalProps}
+    >
       <ModalContent>
         {(close) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">{title}</ModalHeader>
+            <ModalHeader>{title}</ModalHeader>
             <ModalBody>
-              <p className="text-sm text-default-500">{description}</p>
+              <p className="text-sm leading-relaxed text-default-500">
+                {description}
+              </p>
             </ModalBody>
             <ModalFooter>
-              <Button variant="light" onPress={close}>
+              <Button
+                variant="bordered"
+                radius="full"
+                className={modalCancelButtonClassName}
+                onPress={close}
+              >
                 {cancelLabel}
               </Button>
               <Button
                 color={confirmColor}
+                radius="full"
+                className={modalPrimaryButtonClassName}
                 isLoading={isLoading}
                 onPress={() => {
                   onConfirm();

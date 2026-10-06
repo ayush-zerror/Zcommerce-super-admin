@@ -25,8 +25,9 @@ import { subscriptions } from "../../lib/mockData";
 import { selectionToIdSet } from "../../lib/tableSelection";
 import { daysUntil, formatDate } from "../../lib/utils";
 import { useClients } from "../../providers/ClientsProvider";
-import { secondaryButtonClassName } from "../common/buttonStyles";
+import { secondaryButtonClassName, modalCancelButtonClassName, modalPrimaryButtonClassName } from "../common/buttonStyles";
 import { dataTableClassNames, dataTableSelectionProps, tablePanelClassName } from "../common/dataTableStyles";
+import { dashboardModalProps } from "../common/modalStyles";
 import { NoDataPlaceholder } from "../common/NoDataPlaceholder";
 import { StatusChip } from "../common/StatusChip";
 import { TableToolbar } from "../common/TableToolbar";
@@ -330,29 +331,29 @@ export function AutomationSettingsTab() {
       <Modal
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        placement="center"
         size="lg"
+        {...dashboardModalProps}
       >
         <ModalContent>
           {(close) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">
+              <ModalHeader>
                 Email preview
-                <span className="text-xs font-normal text-default-500">
+                <span className="mt-1 text-sm font-normal text-default-500">
                   Same template for all selected stores — placeholders are filled
                   when sending
                 </span>
               </ModalHeader>
-              <ModalBody className="gap-4">
+              <ModalBody>
                 <div>
-                  <p className="text-xs font-medium text-default-500">Subject</p>
-                  <p className="text-sm font-medium">{EMAIL_SUBJECT}</p>
+                  <p className="text-sm font-medium text-foreground">Subject</p>
+                  <p className="mt-1 rounded-md border border-[#BED2F1] bg-grayBackground px-3 py-2 text-sm">
+                    {EMAIL_SUBJECT}
+                  </p>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs font-medium text-default-500">
-                    Message
-                  </p>
-                  <div className="rounded-xl border border-default-200 bg-default-50 px-4 py-3">
+                  <p className="text-sm font-medium text-foreground">Message</p>
+                  <div className="mt-1 rounded-md border border-[#BED2F1] bg-grayBackground px-4 py-3">
                     <p className="whitespace-pre-wrap text-sm text-default-700">
                       {EMAIL_BODY}
                     </p>
@@ -364,11 +365,18 @@ export function AutomationSettingsTab() {
                 </p>
               </ModalBody>
               <ModalFooter>
-                <Button variant="light" onPress={close}>
-                  Close
+                <Button
+                  variant="bordered"
+                  radius="full"
+                  className={modalCancelButtonClassName}
+                  onPress={close}
+                >
+                  Cancel
                 </Button>
                 <Button
                   color="primary"
+                  radius="full"
+                  className={modalPrimaryButtonClassName}
                   isDisabled={selectedCount === 0}
                   onPress={handleSend}
                 >

@@ -50,6 +50,15 @@ export const getInputClasses = (className = "") => ({
   label: "text-sm font-medium w-full",
 });
 
+/** Select trigger styled like getInputClasses inputs (for modal forms). */
+export const getSelectClasses = (className = "") => {
+  const input = getInputClasses(className);
+  return {
+    trigger: input.inputWrapper,
+    label: input.label,
+    value: "text-sm text-foreground",
+  };
+};
 
 export const getSearchInputClasses = (className = "") => ({
   inputWrapper: `
